@@ -98,7 +98,7 @@ spring.datasource.password=[REAL-PASSWORD]
   *.iml
   ```
 
-### Tarea 3: Crear tablas 🔄 EN PROGRESO
+### Tarea 3: Crear tablas ✅ COMPLETADO
 
 #### SQL preparado para ejecutar en Supabase:
 ```sql
@@ -136,6 +136,8 @@ CREATE INDEX idx_board_lists_position ON board_lists(board_id, position);
 CREATE INDEX idx_tasks_list_id ON tasks(list_id);
 CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 ```
+
+> Se guarda seed SQL en `sql/supabase/seed.sql`.
 
 ## 🔧 Configuración de Desarrollo
 
