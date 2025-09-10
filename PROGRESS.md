@@ -102,7 +102,7 @@ spring.datasource.password=[REAL-PASSWORD]
 
 #### SQL preparado para ejecutar en Supabase:
 ```sql
--- Crear tabla boards
+-- Create table boards
 CREATE TABLE boards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -110,8 +110,8 @@ CREATE TABLE boards (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Crear tabla lists
-CREATE TABLE lists (
+-- Create table board_lists
+CREATE TABLE board_lists (
     id SERIAL PRIMARY KEY,
     board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -119,10 +119,10 @@ CREATE TABLE lists (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Crear tabla tasks
+-- Create table tasks
 CREATE TABLE tasks (
     id SERIAL PRIMARY KEY,
-    list_id INTEGER NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+    list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     position INTEGER NOT NULL DEFAULT 0,
@@ -130,9 +130,9 @@ CREATE TABLE tasks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Crear índices para mejor performance
-CREATE INDEX idx_lists_board_id ON lists(board_id);
-CREATE INDEX idx_lists_position ON lists(board_id, position);
+-- Create indexes for performance optimization
+CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
+CREATE INDEX idx_board_lists_position ON board_lists(board_id, position);
 CREATE INDEX idx_tasks_list_id ON tasks(list_id);
 CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 ```
@@ -175,19 +175,13 @@ CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 - ✅ **Flexibilidad**: Fácil switch entre local/producción
 - ✅ **Best practices**: Patrón estándar en Spring Boot
 
-## 📝 Comandos Útiles
-
-### Ejecutar localmente:
+### VM Options en IntelliJ
+####  Ejecutar localmente:
 ```bash
-# Desde terminal (si tienes Maven instalado)
-mvn spring-boot:run -Dspring.profiles.active=local
-
-# Con Maven Wrapper (Windows PowerShell)
-.\mvnw.cmd spring-boot:run -Dspring.profiles.active=local
-
-# Desde IntelliJ IDEA (recomendado)
 Run Configuration con VM options: -Dspring.profiles.active=local
 ```
+
+## 📝 Comandos Útiles
 
 ### Verificar Git:
 ```bash
