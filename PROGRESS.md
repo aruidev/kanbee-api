@@ -749,8 +749,8 @@ git log --oneline
 ## 🚧 Próximos Pasos (Pendientes)
 
 ### Inmediato:
-- [ ] Ejecutar SQL en Supabase SQL Editor
-- [ ] Verificar tablas creadas correctamente
+- [X] Ejecutar SQL en Supabase SQL Editor
+- [X] Verificar tablas creadas correctamente
 - [ ] Testear conexión Spring Boot ↔ Supabase
 
 ### Tarea 4 (Definir entidades JPA):
