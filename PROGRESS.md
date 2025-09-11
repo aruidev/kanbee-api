@@ -141,7 +141,7 @@ CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 
 ### Tarea 4: Definir entidades JPA ⏭️ EN PROGRESO
 
-Paso 1: Crear las clases de entidad 
+#### Crear las clases de entidad 
 
 Vamos a crear las clases Java que mapean las tablas. Crear estas clases en `src/main/java/com/aruidev/kanbeeapi/entity/`:
 
@@ -343,6 +343,343 @@ public class Task {
     public void setBoardList(BoardList boardList) { this.boardList = boardList; }
 }
 ```  
+
+### Tarea 5: Kanbee DTOs - Data Transfer Objects
+
+Crear: `src/main/java/com/aruidev/kanbeeapi/dto/`
+
+## 1. DTOs para Board
+
+### `BoardCreateDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public class BoardCreateDTO {
+    
+    @NotBlank(message = "Title cannot be blank")
+    @Size(max = 255, message = "Title must be less than 255 characters")
+    private String title;
+    
+    // Constructor vacío
+    public BoardCreateDTO() {}
+    
+    public BoardCreateDTO(String title) {
+        this.title = title;
+    }
+    
+    // Getters y setters
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+}
+```
+
+### `BoardResponseDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+public class BoardResponseDTO {
+    
+    private UUID id;
+    private String title;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private List<BoardListResponseDTO> boardLists;
+    
+    // Constructor vacío
+    public BoardResponseDTO() {}
+    
+    public BoardResponseDTO(UUID id, String title, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.title = title;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+    
+    // Getters y setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public List<BoardListResponseDTO> getBoardLists() { return boardLists; }
+    public void setBoardLists(List<BoardListResponseDTO> boardLists) { this.boardLists = boardLists; }
+}
+```
+
+## 2. DTOs para BoardList
+
+### `BoardListCreateDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
+
+public class BoardListCreateDTO {
+    
+    @NotBlank(message = "Title cannot be blank")
+    @Size(max = 255, message = "Title must be less than 255 characters")
+    private String title;
+    
+    @Min(value = 0, message = "Position must be non-negative")
+    private Integer position = 0;
+    
+    // Constructores
+    public BoardListCreateDTO() {}
+    
+    public BoardListCreateDTO(String title, Integer position) {
+        this.title = title;
+        this.position = position;
+    }
+    
+    // Getters y setters
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+}
+```
+
+### `BoardListResponseDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public class BoardListResponseDTO {
+    
+    private Long id;
+    private String title;
+    private Integer position;
+    private LocalDateTime createdAt;
+    private List<TaskResponseDTO> tasks;
+    private Integer taskCount; // Para el contador de tareas
+    
+    // Constructor vacío
+    public BoardListResponseDTO() {}
+    
+    public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt) {
+        this.id = id;
+        this.title = title;
+        this.position = position;
+        this.createdAt = createdAt;
+    }
+    
+    // Getters y setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public List<TaskResponseDTO> getTasks() { return tasks; }
+    public void setTasks(List<TaskResponseDTO> tasks) { 
+        this.tasks = tasks;
+        this.taskCount = tasks != null ? tasks.size() : 0;
+    }
+    
+    public Integer getTaskCount() { return taskCount; }
+    public void setTaskCount(Integer taskCount) { this.taskCount = taskCount; }
+}
+```
+
+### `BoardListMoveDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import java.util.UUID;
+
+public class BoardListMoveDTO {
+    
+    @NotNull(message = "Board ID cannot be null")
+    private UUID boardId;
+    
+    @NotNull(message = "Position cannot be null")
+    @Min(value = 0, message = "Position must be non-negative")
+    private Integer position;
+    
+    // Constructores
+    public BoardListMoveDTO() {}
+    
+    public BoardListMoveDTO(UUID boardId, Integer position) {
+        this.boardId = boardId;
+        this.position = position;
+    }
+    
+    // Getters y setters
+    public UUID getBoardId() { return boardId; }
+    public void setBoardId(UUID boardId) { this.boardId = boardId; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+}
+```
+
+## 3. DTOs para Task
+
+### `TaskCreateDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
+
+public class TaskCreateDTO {
+    
+    @NotBlank(message = "Title cannot be blank")
+    @Size(max = 255, message = "Title must be less than 255 characters")
+    private String title;
+    
+    @Size(max = 2000, message = "Description must be less than 2000 characters")
+    private String description;
+    
+    @Min(value = 0, message = "Position must be non-negative")
+    private Integer position = 0;
+    
+    // Constructores
+    public TaskCreateDTO() {}
+    
+    public TaskCreateDTO(String title, String description, Integer position) {
+        this.title = title;
+        this.description = description;
+        this.position = position;
+    }
+    
+    // Getters y setters
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+}
+```
+
+### `TaskResponseDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import java.time.LocalDateTime;
+
+public class TaskResponseDTO {
+    
+    private Long id;
+    private String title;
+    private String description;
+    private Integer position;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
+    // Constructor vacío
+    public TaskResponseDTO() {}
+    
+    public TaskResponseDTO(Long id, String title, String description, Integer position, 
+                          LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.position = position;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+    
+    // Getters y setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+}
+```  
+
+### `TaskMoveDTO.java`
+```java
+package com.aruidev.kanbeeapi.dto;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+
+public class TaskMoveDTO {
+    
+    @NotNull(message = "List ID cannot be null")
+    private Long listId;
+    
+    @NotNull(message = "Position cannot be null")
+    @Min(value = 0, message = "Position must be non-negative")
+    private Integer position;
+    
+    // Constructores
+    public TaskMoveDTO() {}
+    
+    public TaskMoveDTO(Long listId, Integer position) {
+        this.listId = listId;
+        this.position = position;
+    }
+    
+    // Getters y setters
+    public Long getListId() { return listId; }
+    public void setListId(Long listId) { this.listId = listId; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+}
+```  
+
+## Notas importantes:
+
+### Validaciones incluidas:
+- ✅ `@NotBlank` para campos obligatorios
+- ✅ `@Size` para límites de caracteres
+- ✅ `@Min` para posiciones no negativas
+- ✅ `@NotNull` para campos requeridos
+
+### Features agregadas:
+- ✅ **Task counter** en `BoardListResponseDTO`
+- ✅ **DTOs específicos** para drag-and-drop (`TaskMoveDTO`, `BoardListMoveDTO`)
+- ✅ **Separación clara** entre Create/Response DTOs
+
+### Próximo paso:
+Crear repositorios JPA para acceso a datos.
 
 ## 🔧 Configuración de Desarrollo
 
