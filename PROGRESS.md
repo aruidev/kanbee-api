@@ -484,12 +484,12 @@ public class BoardListResponseDTO {
     // Constructor vacío
     public BoardListResponseDTO() {}
     
-    public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt, Local datetime updatedAt) {
+    public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.position = position;
         this.createdAt = createdAt;
-        this.updatedAt = updated at;
+        this.updatedAt = updatedAt;
     }
     
     // Getters y setters
