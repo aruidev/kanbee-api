@@ -116,7 +116,8 @@ CREATE TABLE board_lists (
     board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     position INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create table tasks
@@ -232,6 +233,10 @@ public class BoardList {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column (name = "updated_at")
+    private LocalDateTime updatedAt;
     
     // Relación Many-to-One con Board
     @ManyToOne(fetch = FetchType.LAZY)
@@ -263,6 +268,9 @@ public class BoardList {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
     public Board getBoard() { return board; }
     public void setBoard(Board board) { this.board = board; }
     
@@ -469,17 +477,19 @@ public class BoardListResponseDTO {
     private String title;
     private Integer position;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<TaskResponseDTO> tasks;
     private Integer taskCount; // Para el contador de tareas
     
     // Constructor vacío
     public BoardListResponseDTO() {}
     
-    public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt) {
+    public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt, Local datetime updatedAt) {
         this.id = id;
         this.title = title;
         this.position = position;
         this.createdAt = createdAt;
+        this.updatedAt = updated at;
     }
     
     // Getters y setters
@@ -495,6 +505,9 @@ public class BoardListResponseDTO {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
     public List<TaskResponseDTO> getTasks() { return tasks; }
     public void setTasks(List<TaskResponseDTO> tasks) { 
         this.tasks = tasks;
