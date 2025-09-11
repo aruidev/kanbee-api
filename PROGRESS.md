@@ -750,13 +750,13 @@ git log --oneline
 - [ ] `ListCreateDTO`, `TaskCreateDTO`
 - [ ] `TaskMoveDTO` para drag-and-drop
 
-## 💡 Lecciones Aprendidas
+## 💡 Notas
 
-1. **Maven Wrapper es esencial** - No todos los sistemas tienen Maven instalado globalmente
-2. **Separar entornos desde el inicio** - Evita commits accidentales de credenciales
-3. **Direct Connection > Pooler** para aplicaciones persistentes como Spring Boot
-4. **IntelliJ IDEA facilita mucho** el desarrollo comparado con terminal puro
-5. **Java LTS > Bleeding edge** para proyectos de portfolio
+1. **Maven Wrapper es esencial** - Iniciar proyecto en pom.xml, no en el directorio. IntelliJ IDEA instalará todas las dependencias maven automáticamente.
+2. **Separar entornos desde el inicio** - Evita commits accidentales de credenciales.
+3. **Direct Connection > Pooler** para aplicaciones persistentes como Spring Boot.
+4. **Git** - Asegurarse de inicializar repositorio en la raíz del proyecto.
+5. **Java LTS > Bleeding edge** - Versiones **no LTS** tienen soporte limitado.
 
 ## 📊 Tiempo Invertido Hasta Ahora
 - **Tarea 1** (Spring Boot setup): ~1.5h (incluyó resolución de problemas Maven)
@@ -765,4 +765,4 @@ git log --oneline
 - **Total**: ~3h (dentro del estimado de 13-15h total para Milestone 1)
 
 ---
-*Última actualización: [Fecha actual] - Proyecto progresando según roadmap*
+*Última actualización: 11-09-2025 - Proyecto progresando según roadmap*
