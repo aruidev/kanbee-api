@@ -140,7 +140,7 @@ CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 
 > Se guarda seed SQL en `sql/supabase/seed.sql`.
 
-### Tarea 4: Definir entidades JPA ⏭️ EN PROGRESO
+### Tarea 4: Definir entidades JPA ✅ COMPLETADO
 
 #### Crear las clases de entidad 
 
@@ -352,7 +352,7 @@ public class Task {
 }
 ```  
 
-### Tarea 5: Kanbee DTOs - Data Transfer Objects
+### Tarea 5: Kanbee DTOs - Data Transfer Objects 🚧 EN PROGRESO
 
 Crear: `src/main/java/com/aruidev/kanbeeapi/dto/`
 
