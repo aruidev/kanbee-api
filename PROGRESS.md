@@ -139,6 +139,210 @@ CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 
 > Se guarda seed SQL en `sql/supabase/seed.sql`.
 
+### Tarea 4: Definir entidades JPA ⏭️ EN PROGRESO
+
+Paso 1: Crear las clases de entidad  
+Vamos a crear las clases Java que mapean las tablas. Crear estas clases en `src/main/java/com/aruidev/kanbeeapi/entity/:
+
+#### 1. Crear `Board.java`:
+
+```java
+package com.aruidev.kanbeeapi.entity;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "boards")
+public class Board {
+    
+    @Id
+    @GeneratedValue
+    private UUID id;
+    
+    @Column(nullable = false)
+    private String title;
+    
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardList> boardLists;
+    
+    // Constructor vacío (requerido por JPA)
+    public Board() {}
+    
+    // Constructor con título
+    public Board(String title) {
+        this.title = title;
+    }
+    
+    // Getters y setters...
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<BoardList> getBoardLists() { return boardLists; }
+    public void setBoardLists(List<BoardList> boardLists) { this.boardLists = boardLists; }
+}
+```  
+
+#### 2. Crear BoardList.java:
+
+```java
+package com.example.kanbee.entity;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "board_lists")
+public class BoardList {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String title;
+    
+    @Column(nullable = false)
+    private Integer position = 0;
+    
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    // Relación Many-to-One con Board
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+    
+    // Relación One-to-Many con Tasks
+    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks;
+    
+    // Constructores
+    public BoardList() {}
+    
+    public BoardList(String title, Integer position) {
+        this.title = title;
+        this.position = position;
+    }
+    
+    // Getters y setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public Board getBoard() { return board; }
+    public void setBoard(Board board) { this.board = board; }
+    
+    public List<Task> getTasks() { return tasks; }
+    public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+}
+```  
+
+#### 3. Crear Task.java:
+
+```java
+package com.example.kanbee.entity;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "tasks")
+public class Task {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String title;
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(nullable = false)
+    private Integer position = 0;
+    
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    // Relación Many-to-One con BoardList
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "list_id", nullable = false)
+    private BoardList boardList;
+    
+    // Constructores
+    public Task() {}
+    
+    public Task(String title, String description, Integer position) {
+        this.title = title;
+        this.description = description;
+        this.position = position;
+    }
+    
+    // Getters y setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public BoardList getBoardList() { return boardList; }
+    public void setBoardList(BoardList boardList) { this.boardList = boardList; }
+}
+```  
+
 ## 🔧 Configuración de Desarrollo
 
 ### IntelliJ IDEA Setup:
