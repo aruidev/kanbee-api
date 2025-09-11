@@ -141,8 +141,9 @@ CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 
 ### Tarea 4: Definir entidades JPA ⏭️ EN PROGRESO
 
-Paso 1: Crear las clases de entidad  
-Vamos a crear las clases Java que mapean las tablas. Crear estas clases en `src/main/java/com/aruidev/kanbeeapi/entity/:
+Paso 1: Crear las clases de entidad 
+
+Vamos a crear las clases Java que mapean las tablas. Crear estas clases en `src/main/java/com/aruidev/kanbeeapi/entity/`:
 
 #### 1. Crear `Board.java`:
 
@@ -207,7 +208,7 @@ public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; 
 #### 2. Crear BoardList.java:
 
 ```java
-package com.example.kanbee.entity;
+package com.aruidev.kanbeeapi.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -273,7 +274,7 @@ public class BoardList {
 #### 3. Crear Task.java:
 
 ```java
-package com.example.kanbee.entity;
+package com.aruidev.kanbeeapi.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
