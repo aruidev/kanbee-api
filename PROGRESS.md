@@ -746,7 +746,8 @@ git status
 git log --oneline
 ```
 
-## 🚧 Próximos Pasos
+## 🚧 Pipeline de Tareas
+Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger → Tests.
 
 ### Inmediato:
 - [X] Ejecutar SQL en Supabase SQL Editor
@@ -762,6 +763,50 @@ git log --oneline
 - [ ] `BoardCreateDTO`, `BoardResponseDTO`
 - [ ] `ListCreateDTO`, `TaskCreateDTO`
 - [ ] `TaskMoveDTO` para drag-and-drop
+
+
+### **Tarea 6: Crear Repositorios JPA**
+  - [ ] Crear `BoardRepository` extendiendo `JpaRepository<Board, UUID>`
+  - [ ] Crear `BoardListRepository` extendiendo `JpaRepository<BoardList, Long>`
+  - [ ] Crear `TaskRepository` extendiendo `JpaRepository<Task, Long>`
+  - [ ] Añadir queries personalizadas si se necesita ordenamiento (ej. `findByBoardIdOrderByPositionAsc`)
+
+### **Tarea 7: Crear Servicios (lógica de negocio)**
+  - [ ] Implementar `BoardService`, `BoardListService`, `TaskService`
+  - [ ] Mapear **Entidades ↔ DTOs**
+  - [ ] Incluir validaciones de negocio (board existe, lista existe, etc.)
+
+### **Tarea 8: Crear Controladores REST**
+  - [ ] `BoardController`: endpoints CRUD para tableros
+  - [ ] `BoardListController`: endpoints CRUD para listas
+  - [ ] `TaskController`: endpoints CRUD para tareas
+  - [ ] Endpoints de movimiento drag-and-drop (`PATCH /tasks/{id}/move`, `PATCH /lists/{id}/move`)
+  - [ ] Usar `@Valid` y `@RequestBody` para validar DTOs
+
+### **Tarea 9: Configurar CORS**
+  - [ ] Permitir acceso desde:
+    - `http://localhost:4200` (desarrollo local)
+    - `https://kanbee-frontend.vercel.app` (deploy en Vercel)
+
+### **Tarea 10: Documentar con Swagger**
+  - [ ] Anotar controladores con `@Operation`, `@ApiResponse`
+  - [ ] Probar en `/swagger-ui.html`
+
+### **Tarea 11: Pruebas unitarias**
+  - [ ] Crear tests con JUnit para controladores y servicios
+  - [ ] Verificar validaciones (`@NotNull`, `@Size`, etc.)
+  - [ ] Cobertura mínima >70%
+
+### **Tarea 12: Test local + Debugging**
+  - [ ] Probar CRUD con Swagger/Postman
+  - [ ] Verificar timestamps automáticos
+  - [ ] Verificar concurrencia en drag-and-drop
+
+### **Tarea 13: Deploy en Render**
+  - [ ] Subir repo a GitHub
+  - [ ] Configurar variables de entorno (`SPRING_DATASOURCE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`)
+  - [ ] Probar Swagger en `kanbee-backend.onrender.com`
+  - [ ] Configurar health check
 
 ## 💡 Notas
 
