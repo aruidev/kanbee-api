@@ -746,17 +746,17 @@ git status
 git log --oneline
 ```
 
-## 🚧 Próximos Pasos (Pendientes)
+## 🚧 Próximos Pasos
 
 ### Inmediato:
 - [X] Ejecutar SQL en Supabase SQL Editor
 - [X] Verificar tablas creadas correctamente
-- [ ] Testear conexión Spring Boot ↔ Supabase
+- [X] Testear conexión Spring Boot ↔ Supabase
 
 ### Tarea 4 (Definir entidades JPA):
-- [ ] Crear clases `Board`, `List`, `Task`
-- [ ] Configurar relaciones JPA (`@OneToMany`, `@ManyToOne`)
-- [ ] Agregar timestamps automáticos (`@CreationTimestamp`, `@UpdateTimestamp`)
+- [X] Crear clases `Board`, `List`, `Task`
+- [X] Configurar relaciones JPA (`@OneToMany`, `@ManyToOne`)
+- [X] Agregar timestamps automáticos (`@CreationTimestamp`, `@UpdateTimestamp`)
 
 ### Tarea 5 (DTOs):
 - [ ] `BoardCreateDTO`, `BoardResponseDTO`
