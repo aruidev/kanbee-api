@@ -1,7 +1,7 @@
 # Kanbee Backend - Progreso del Proyecto
 
 ## 📋 Resumen del Proyecto
-**Kanbee** es una aplicación web tipo Trello que permite gestionar cards en tableros colaborativos mediante URLs abiertas, inspirada en la organización de las abejas. Este README documenta todo el progreso realizado hasta ahora.
+**Kanbee** es una aplicación web tipo Trello que permite gestionar tareas (cards) en tableros colaborativos mediante URLs abiertas. Este README documenta todo el progreso realizado hasta ahora.
 
 ## 🎯 Stack Tecnológico Decidido
 - **Backend**: Spring Boot + Maven + Java 21
@@ -584,12 +584,17 @@ public class Card {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Card)) return false;
-        return id != null && id.equals(((Card) o).id);
+      if (this == o) return true;
+      if (!(o instanceof Card)) return false;
+      return id != null && id.equals(((Card) o).id);
     }
     @Override
-}
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+      return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
+    }
+  }
 ```
 
 ### Tarea 5: Kanbee DTOs - Data Transfer Objects 🚧 EN PROGRESO
@@ -1060,82 +1065,6 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 COMMIT;
 ```
 
-### REBUILD INCREMENTAL (si no quieres perder datos)
-
-```sql
--- Rebuild limpio (usar solo si puedes perder datos)
-
-BEGIN;
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- Drop previo (idempotente)
-DROP TRIGGER IF EXISTS trg_cards_updated_at ON cards;
-DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
-DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
-DROP FUNCTION IF EXISTS set_updated_at();
-DROP TABLE IF EXISTS cards CASCADE;
-DROP TABLE IF EXISTS board_lists CASCADE;
-DROP TABLE IF EXISTS boards CASCADE;
-
--- Función para mantener updated_at
-CREATE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Tablas
-CREATE TABLE boards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title VARCHAR(255) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE board_lists (
-    id SERIAL PRIMARY KEY,
-    board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_board_lists_board_position UNIQUE (board_id, position)
-);
-
-CREATE TABLE cards (
-    id SERIAL PRIMARY KEY,
-    list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_cards_list_position UNIQUE (list_id, position)
-);
-
--- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
-CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
-CREATE INDEX idx_cards_list_id ON cards(list_id);
-
--- Triggers updated_at
-CREATE TRIGGER trg_boards_updated_at
-BEFORE UPDATE ON boards
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE TRIGGER trg_board_lists_updated_at
-BEFORE UPDATE ON board_lists
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE TRIGGER trg_cards_updated_at
-BEFORE UPDATE ON cards
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-COMMIT;
-```
-
 ## Cambios en entidades: Se usa Set en lugar de List para evitar duplicados y mejorar equals/hashCode.
 
 `Board.java`
@@ -1420,6 +1349,8 @@ public class Card {
 }
 ```
 
+> También se cambia el nombre de 'task' por 'card' para seguir la nomenclatura Trello-like.
+
 
 ## TAREA 6: Repositorios JPA ✅ COMPLETADO
 Repositorios JPA con métodos de consulta ordenada, obtención de última posición y utilidades para reordenar (drag&drop). Se usan métodos derivados y queries @Modifying para desplazar posiciones respetando las UNIQUE (board_id, position) y UNIQUE (list_id, position).
@@ -1537,3 +1468,36 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 > - Ajustar orden de reordenamiento: 1) desplazar rango 2) set nueva posición del elemento movido.
 > - Recomendado en application.properties: spring.jpa.open-in-view=false para controlar cargas en servicio.
 > - Validar conflictos DataIntegrityViolationException por las UNIQUE en posición.
+
+
+## Tarea 7
+### **Tarea 7: Crear Servicios (lógica de negocio)**
+
+- [X] Implementar `BoardService`, `BoardListService`, `CardService`
+- [X] Mapear **Entidades ↔ DTOs**
+- [X] Incluir validaciones de negocio (board existe, lista existe, etc.)
+
+---
+
+### Progreso Tarea 7 (13-09-2024)
+
+- Implementados servicios: `BoardService`, `BoardListService`, `CardService` en `src/main/java/com/aruidev/kanbeeapi/service/`.
+- Añadido mapper manual `EntityDtoMapper` para conversión Entidad ↔ DTO.
+- Lógica de negocio:
+  - Validación de existencia de board/list/card antes de operar.
+  - Métodos de creación, obtención, actualización y borrado para cada entidad.
+  - Métodos de movimiento drag&drop para listas y cards, con reordenamiento consistente usando queries en bloque (`shiftPositionsUpFrom`, `closeGapAfterMoveDown`, `closeGapAfterMoveUp`).
+  - Todas las mutaciones anotadas con `@Transactional`.
+  - Lectura con `@Transactional(readOnly = true)`.
+- Manejo de excepciones:
+  - Excepción personalizada `NotFoundException` para recursos no encontrados.
+- Validaciones:
+  - Se usan validaciones de DTO (`@NotBlank`, `@Size`, `@Min`, `@NotNull`).
+- Notas:
+  - El reordenamiento evita violar las restricciones UNIQUE (`board_id, position` y `list_id, position`).
+  - Se recomienda añadir un `@ControllerAdvice` para mapear errores a JSON uniformes (pendiente para Tarea 8).
+  - Se recomienda tener `spring.jpa.open-in-view=false` en `application.properties`.
+
+---
+
+

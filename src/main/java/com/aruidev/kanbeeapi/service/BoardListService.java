@@ -4,6 +4,7 @@ import com.aruidev.kanbeeapi.dto.*;
 import com.aruidev.kanbeeapi.entity.Board;
 import com.aruidev.kanbeeapi.entity.BoardList;
 import com.aruidev.kanbeeapi.exception.NotFoundException;
+import com.aruidev.kanbeeapi.exception.BadRequestException;
 import com.aruidev.kanbeeapi.repository.BoardListRepository;
 import com.aruidev.kanbeeapi.repository.BoardRepository;
 import com.aruidev.kanbeeapi.service.mapper.EntityDtoMapper;
@@ -15,6 +16,8 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 public class BoardListService {
+
+    private static final int MAX_TITLE_LENGTH = 255;
 
     private final BoardRepository boardRepository;
     private final BoardListRepository boardListRepository;
@@ -35,7 +38,8 @@ public class BoardListService {
         // Shift si inserta en el medio
         boardListRepository.shiftPositionsUpFrom(boardId, position);
 
-        BoardList list = new BoardList(dto.getTitle(), position);
+        String sanitizedTitle = sanitizeAndValidateTitle(dto.getTitle());
+        BoardList list = new BoardList(sanitizedTitle, position);
         list.setBoard(board);
         boardListRepository.save(list);
         return EntityDtoMapper.toBoardListResponse(list, true);
@@ -59,7 +63,7 @@ public class BoardListService {
     public BoardListResponseDTO updateTitle(Long id, String newTitle) {
         BoardList list = boardListRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("List no encontrada: " + id));
-        list.setTitle(newTitle);
+        list.setTitle(sanitizeAndValidateTitle(newTitle));
         return EntityDtoMapper.toBoardListResponse(list, false);
     }
 
@@ -120,5 +124,19 @@ public class BoardListService {
         boardListRepository.delete(list);
         // Compactar hueco (oldPos a oldPos) usando rango consistente
         boardListRepository.closeGapAfterMoveDown(boardId, oldPos, oldPos + 1);
+    }
+
+    private String sanitizeAndValidateTitle(String raw) {
+        if (raw == null) {
+            throw new BadRequestException("Title cannot be null");
+        }
+        String sanitized = raw.trim().replaceAll("\\s+", " ");
+        if (sanitized.isEmpty()) {
+            throw new BadRequestException("Title cannot be blank");
+        }
+        if (sanitized.length() > MAX_TITLE_LENGTH) {
+            throw new BadRequestException("Title length must be <= " + MAX_TITLE_LENGTH);
+        }
+        return sanitized;
     }
 }
