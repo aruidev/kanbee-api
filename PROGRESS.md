@@ -10,6 +10,175 @@
 - **IDE**: IntelliJ IDEA
 - **Documentación API**: Swagger/OpenAPI
 
+## 🔧 Configuración de Desarrollo
+
+### IntelliJ IDEA Setup:
+1. ✅ Proyecto importado correctamente como proyecto Maven
+2. ✅ Dependencies descargadas automáticamente
+3. ✅ Maven Wrapper disponible (archivos `mvnw.cmd`, `.mvn/`)
+4. ✅ Run Configuration configurada con profile `local`
+
+### Git Setup:
+- ✅ Repositorio Git inicializado
+- ✅ `.gitignore` configurado para proteger credenciales
+- ✅ Archivos sensibles excluidos del control de versiones
+
+## 🎯 Decisiones Técnicas Tomadas
+
+### ¿Por qué Java 21 y no Java 24?
+- ✅ **Java 21 es LTS** (Long Term Support)
+- ✅ **Totalmente compatible** con Spring Boot 3.x
+- ✅ **Estable y probado** en producción
+- ❌ Java 24 es bleeding edge y no es LTS
+
+### ¿Por qué Direct Connection en Supabase?
+- ✅ **Spring Boot es persistente** (no serverless)
+- ✅ **Mejor performance** para apps tradicionales
+- ✅ **Soporta PREPARE statements** (usado por JPA/Hibernate)
+- ✅ **Render.com soporta** conexiones de larga duración
+
+### ¿Por qué Render + Supabase y no otras opciones?
+- ✅ **Render**: 750 horas gratis/mes, deploy fácil desde GitHub
+- ✅ **Supabase**: Mejor PostgreSQL managed gratuito, dashboard excelente
+- ❌ **Railway**: Requiere $5/mes después del trial
+- ❌ **Fly.io**: Solo 160GB-hours gratis (menos horas que Render)
+
+### ¿Por qué profiles de Spring?
+- ✅ **Seguridad**: Credenciales no van al repositorio
+- ✅ **Flexibilidad**: Fácil switch entre local/producción
+- ✅ **Best practices**: Patrón estándar en Spring Boot
+
+### VM Options en IntelliJ
+####  Ejecutar localmente:
+```bash
+Run Configuration con VM options: -Dspring.profiles.active=local
+```
+
+## 📝 Comandos Útiles
+
+### Verificar Git:
+```bash
+git status
+git log --oneline
+```
+
+## 🚧 Pipeline de Tareas
+Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger → Tests.
+
+### Inmediato:
+- [X] Ejecutar SQL en Supabase SQL Editor
+- [X] Verificar tablas creadas correctamente
+- [X] Testear conexión Spring Boot ↔ Supabase
+
+### Tarea 4 (Definir entidades JPA):
+- [X] Crear clases `Board`, `List`, `Task`
+- [X] Configurar relaciones JPA (`@OneToMany`, `@ManyToOne`)
+- [X] Agregar timestamps automáticos (`@CreationTimestamp`, `@UpdateTimestamp`)
+
+### Tarea 5 (DTOs):
+- [X] `BoardCreateDTO`, `BoardResponseDTO`
+- [X] `ListCreateDTO`, `TaskCreateDTO`
+- [X] `TaskMoveDTO` para drag-and-drop
+
+### **Tarea 6: Crear Repositorios JPA**
+- [X] Crear `BoardRepository` extendiendo `JpaRepository<Board, UUID>`
+- [X] Crear `BoardListRepository` extendiendo `JpaRepository<BoardList, Long>`
+- [X] Crear `TaskRepository` extendiendo `JpaRepository<Task, Long>`
+- [ ] Añadir queries personalizadas si se necesita ordenamiento (ej. `findByBoardIdOrderByPositionAsc`)
+
+### **Tarea 7: Crear Servicios (lógica de negocio)**
+- [ ] Implementar `BoardService`, `BoardListService`, `TaskService`
+- [ ] Mapear **Entidades ↔ DTOs**
+- [ ] Incluir validaciones de negocio (board existe, lista existe, etc.)
+
+### **Tarea 8: Crear Controladores REST**
+- [ ] `BoardController`: endpoints CRUD para tableros
+- [ ] `BoardListController`: endpoints CRUD para listas
+- [ ] `TaskController`: endpoints CRUD para tareas
+- [ ] Endpoints de movimiento drag-and-drop (`PATCH /tasks/{id}/move`, `PATCH /lists/{id}/move`)
+- [ ] Usar `@Valid` y `@RequestBody` para validar DTOs
+
+### **Tarea 9: Configurar CORS**
+- [ ] Permitir acceso desde:
+  - `http://localhost:4200` (desarrollo local)
+  - `https://kanbee-frontend.vercel.app` (deploy en Vercel)
+
+### **Tarea 10: Documentar con Swagger**
+- [ ] Anotar controladores con `@Operation`, `@ApiResponse`
+- [ ] Probar en `/swagger-ui.html`
+
+### **Tarea 11: Pruebas unitarias**
+- [ ] Crear tests con JUnit para controladores y servicios
+- [ ] Verificar validaciones (`@NotNull`, `@Size`, etc.)
+- [ ] Cobertura mínima >70%
+
+### **Tarea 12: Test local + Debugging**
+- [ ] Probar CRUD con Swagger/Postman
+- [ ] Verificar timestamps automáticos
+- [ ] Verificar concurrencia en drag-and-drop
+
+### **Tarea 13: Deploy en Render**
+- [ ] Subir repo a GitHub
+- [ ] Configurar variables de entorno (`SPRING_DATASOURCE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`)
+- [ ] Probar Swagger en `kanbee-backend.onrender.com`
+- [ ] Configurar health check
+
+## 💡 Notas
+
+1. **Maven Wrapper es esencial** - Iniciar proyecto en pom.xml, no en el directorio. IntelliJ IDEA instalará todas las dependencias maven automáticamente.
+2. **Separar entornos desde el inicio** - Evita commits accidentales de credenciales.
+3. **Direct Connection > Pooler** para aplicaciones persistentes como Spring Boot.
+4. **Git** - Asegurarse de inicializar repositorio en la raíz del proyecto.
+5. **Java LTS > Bleeding edge** - Versiones **no LTS** tienen soporte limitado.
+
+---
+
+## Observaciones técnicas
+
+### Entidades
+- Considerar `Set<>` en colecciones para evitar duplicados y mejorar `equals`/`hashCode`.
+- Añadir `@JsonIgnore` o mapear siempre vía DTO para evitar problemas de serialización con `LAZY`.
+- Añadir `equals`/`hashCode` basados en `id` (cuando no sea null) y quizá `toString` seguro (sin relaciones).
+- Unificar tipos: tablas usan `SERIAL` (int) pero entidades usan `Long`; consistente, pero podrías migrar a `BIGSERIAL` o ajustar a `Integer`.
+
+### Modelo relacional
+- Falta `ON UPDATE` triggers para mantener `updated_at` si quieres consistencia también a nivel SQL (opcional; Hibernate ya lo maneja).
+- Podrías agregar una restricción única (`board_id`, `position`) y (`list_id`, `position`) para garantizar orden estable.
+
+### DTOs
+- Con Java 21 puedes migrar muchos DTOs a `record` para reducir código (solo en petición/respuesta).
+- `taskCount` se deriva: marcarlo como calculado en el mapper, evitar setter público.
+
+### Capa de persistencia (pendiente)
+- Repositorios con métodos:
+  - `List<BoardList> findByBoardIdOrderByPositionAsc(UUID boardId)`
+  - `List<Task> findByBoardListIdOrderByPositionAsc(Long listId)`
+- Añadir métodos para obtener máximo `position` al insertar al final.
+
+### Servicios
+- Definir transacciones: `@Transactional(readOnly = true)` por defecto y mutaciones con `@Transactional`.
+- Encapsular lógica de reordenamiento (shift de posiciones) en métodos dedicados para evitar inconsistencias.
+
+### Configuración
+- Añadir `spring.jpa.open-in-view=false` para forzar carga controlada en servicios.
+- Considerar `springdoc.api-docs.path=/api-docs` y agrupar endpoints bajo `/api/v1`.
+
+### Errores y manejo
+- Planear `@ControllerAdvice` + `@ExceptionHandler` para `EntityNotFound`, validaciones y mensajes uniformes JSON.
+
+### Performance / futuro
+- Si reordenamientos son frecuentes, podrías usar técnica de spacing (posiciones tipo 100, 200...) para minimizar recalculos.
+- Añadir auditoría futura (`createdBy`) si luego agregas usuarios.
+
+### Seguridad
+- Aunque ahora sea público, dejar preparado un filtro CORS global + futura capa auth (JWT o API key simple).
+
+### Testing (cuando llegues)
+- Usar `@DataJpaTest` para validar orden y cascadas.
+- Tests de servicio para reordenar listas/tareas (incluye colisiones y huecos).
+
+---
+
 ## ✅ Milestone 1: Backend Setup - PROGRESO ACTUAL
 
 ### Tarea 1: Crear proyecto Spring Boot ✅ COMPLETADO
@@ -692,179 +861,6 @@ public class TaskMoveDTO {
 - ✅ **DTOs específicos** para drag-and-drop (`TaskMoveDTO`, `BoardListMoveDTO`)
 - ✅ **Separación clara** entre Create/Response DTOs
 
-### Próximo paso:
-Crear repositorios JPA para acceso a datos.
-
-## 🔧 Configuración de Desarrollo
-
-### IntelliJ IDEA Setup:
-1. ✅ Proyecto importado correctamente como proyecto Maven
-2. ✅ Dependencies descargadas automáticamente
-3. ✅ Maven Wrapper disponible (archivos `mvnw.cmd`, `.mvn/`)
-4. ✅ Run Configuration configurada con profile `local`
-
-### Git Setup:
-- ✅ Repositorio Git inicializado
-- ✅ `.gitignore` configurado para proteger credenciales
-- ✅ Archivos sensibles excluidos del control de versiones
-
-## 🎯 Decisiones Técnicas Tomadas
-
-### ¿Por qué Java 21 y no Java 24?
-- ✅ **Java 21 es LTS** (Long Term Support)
-- ✅ **Totalmente compatible** con Spring Boot 3.x
-- ✅ **Estable y probado** en producción
-- ❌ Java 24 es bleeding edge y no es LTS
-
-### ¿Por qué Direct Connection en Supabase?
-- ✅ **Spring Boot es persistente** (no serverless)
-- ✅ **Mejor performance** para apps tradicionales
-- ✅ **Soporta PREPARE statements** (usado por JPA/Hibernate)
-- ✅ **Render.com soporta** conexiones de larga duración
-
-### ¿Por qué Render + Supabase y no otras opciones?
-- ✅ **Render**: 750 horas gratis/mes, deploy fácil desde GitHub
-- ✅ **Supabase**: Mejor PostgreSQL managed gratuito, dashboard excelente
-- ❌ **Railway**: Requiere $5/mes después del trial
-- ❌ **Fly.io**: Solo 160GB-hours gratis (menos horas que Render)
-
-### ¿Por qué profiles de Spring?
-- ✅ **Seguridad**: Credenciales no van al repositorio
-- ✅ **Flexibilidad**: Fácil switch entre local/producción
-- ✅ **Best practices**: Patrón estándar en Spring Boot
-
-### VM Options en IntelliJ
-####  Ejecutar localmente:
-```bash
-Run Configuration con VM options: -Dspring.profiles.active=local
-```
-
-## 📝 Comandos Útiles
-
-### Verificar Git:
-```bash
-git status
-git log --oneline
-```
-
-## 🚧 Pipeline de Tareas
-Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger → Tests.
-
-### Inmediato:
-- [X] Ejecutar SQL en Supabase SQL Editor
-- [X] Verificar tablas creadas correctamente
-- [X] Testear conexión Spring Boot ↔ Supabase
-
-### Tarea 4 (Definir entidades JPA):
-- [X] Crear clases `Board`, `List`, `Task`
-- [X] Configurar relaciones JPA (`@OneToMany`, `@ManyToOne`)
-- [X] Agregar timestamps automáticos (`@CreationTimestamp`, `@UpdateTimestamp`)
-
-### Tarea 5 (DTOs):
-- [X] `BoardCreateDTO`, `BoardResponseDTO`
-- [X] `ListCreateDTO`, `TaskCreateDTO`
-- [X] `TaskMoveDTO` para drag-and-drop
-
-
-### **Tarea 6: Crear Repositorios JPA**
-  - [ ] Crear `BoardRepository` extendiendo `JpaRepository<Board, UUID>`
-  - [ ] Crear `BoardListRepository` extendiendo `JpaRepository<BoardList, Long>`
-  - [ ] Crear `TaskRepository` extendiendo `JpaRepository<Task, Long>`
-  - [ ] Añadir queries personalizadas si se necesita ordenamiento (ej. `findByBoardIdOrderByPositionAsc`)
-
-### **Tarea 7: Crear Servicios (lógica de negocio)**
-  - [ ] Implementar `BoardService`, `BoardListService`, `TaskService`
-  - [ ] Mapear **Entidades ↔ DTOs**
-  - [ ] Incluir validaciones de negocio (board existe, lista existe, etc.)
-
-### **Tarea 8: Crear Controladores REST**
-  - [ ] `BoardController`: endpoints CRUD para tableros
-  - [ ] `BoardListController`: endpoints CRUD para listas
-  - [ ] `TaskController`: endpoints CRUD para tareas
-  - [ ] Endpoints de movimiento drag-and-drop (`PATCH /tasks/{id}/move`, `PATCH /lists/{id}/move`)
-  - [ ] Usar `@Valid` y `@RequestBody` para validar DTOs
-
-### **Tarea 9: Configurar CORS**
-  - [ ] Permitir acceso desde:
-    - `http://localhost:4200` (desarrollo local)
-    - `https://kanbee-frontend.vercel.app` (deploy en Vercel)
-
-### **Tarea 10: Documentar con Swagger**
-  - [ ] Anotar controladores con `@Operation`, `@ApiResponse`
-  - [ ] Probar en `/swagger-ui.html`
-
-### **Tarea 11: Pruebas unitarias**
-  - [ ] Crear tests con JUnit para controladores y servicios
-  - [ ] Verificar validaciones (`@NotNull`, `@Size`, etc.)
-  - [ ] Cobertura mínima >70%
-
-### **Tarea 12: Test local + Debugging**
-  - [ ] Probar CRUD con Swagger/Postman
-  - [ ] Verificar timestamps automáticos
-  - [ ] Verificar concurrencia en drag-and-drop
-
-### **Tarea 13: Deploy en Render**
-  - [ ] Subir repo a GitHub
-  - [ ] Configurar variables de entorno (`SPRING_DATASOURCE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`)
-  - [ ] Probar Swagger en `kanbee-backend.onrender.com`
-  - [ ] Configurar health check
-
-## 💡 Notas
-
-1. **Maven Wrapper es esencial** - Iniciar proyecto en pom.xml, no en el directorio. IntelliJ IDEA instalará todas las dependencias maven automáticamente.
-2. **Separar entornos desde el inicio** - Evita commits accidentales de credenciales.
-3. **Direct Connection > Pooler** para aplicaciones persistentes como Spring Boot.
-4. **Git** - Asegurarse de inicializar repositorio en la raíz del proyecto.
-5. **Java LTS > Bleeding edge** - Versiones **no LTS** tienen soporte limitado.
-
----
-
-## Observaciones técnicas
-
-### Entidades
-- Considerar `Set<>` en colecciones para evitar duplicados y mejorar `equals`/`hashCode`.
-- Añadir `@JsonIgnore` o mapear siempre vía DTO para evitar problemas de serialización con `LAZY`.
-- Añadir `equals`/`hashCode` basados en `id` (cuando no sea null) y quizá `toString` seguro (sin relaciones).
-- Unificar tipos: tablas usan `SERIAL` (int) pero entidades usan `Long`; consistente, pero podrías migrar a `BIGSERIAL` o ajustar a `Integer`.
-
-### Modelo relacional
-- Falta `ON UPDATE` triggers para mantener `updated_at` si quieres consistencia también a nivel SQL (opcional; Hibernate ya lo maneja).
-- Podrías agregar una restricción única (`board_id`, `position`) y (`list_id`, `position`) para garantizar orden estable.
-
-### DTOs
-- Con Java 21 puedes migrar muchos DTOs a `record` para reducir código (solo en petición/respuesta).
-- `taskCount` se deriva: marcarlo como calculado en el mapper, evitar setter público.
-
-### Capa de persistencia (pendiente)
-- Repositorios con métodos:
-  - `List<BoardList> findByBoardIdOrderByPositionAsc(UUID boardId)`
-  - `List<Task> findByBoardListIdOrderByPositionAsc(Long listId)`
-- Añadir métodos para obtener máximo `position` al insertar al final.
-
-### Servicios
-- Definir transacciones: `@Transactional(readOnly = true)` por defecto y mutaciones con `@Transactional`.
-- Encapsular lógica de reordenamiento (shift de posiciones) en métodos dedicados para evitar inconsistencias.
-
-### Configuración
-- Añadir `spring.jpa.open-in-view=false` para forzar carga controlada en servicios.
-- Considerar `springdoc.api-docs.path=/api-docs` y agrupar endpoints bajo `/api/v1`.
-
-### Errores y manejo
-- Planear `@ControllerAdvice` + `@ExceptionHandler` para `EntityNotFound`, validaciones y mensajes uniformes JSON.
-
-### Performance / futuro
-- Si reordenamientos son frecuentes, podrías usar técnica de spacing (posiciones tipo 100, 200...) para minimizar recalculos.
-- Añadir auditoría futura (`createdBy`) si luego agregas usuarios.
-
-### Seguridad
-- Aunque ahora sea público, dejar preparado un filtro CORS global + futura capa auth (JWT o API key simple).
-
-### Testing (cuando llegues)
-- Usar `@DataJpaTest` para validar orden y cascadas.
-- Tests de servicio para reordenar listas/tareas (incluye colisiones y huecos).
-
----
-
 ### Próximos pasos recomendados (prioridad)
 - Repositorios con métodos ordenados.
 - Mappers entidad ↔ DTO (manual o MapStruct).
@@ -1282,3 +1278,119 @@ public class Task {
     }
 }
 ```
+
+
+## TAREA 6: Repositorios JPA ✅ COMPLETADO
+Repositorios JPA con métodos de consulta ordenada, obtención de última posición y utilidades para reordenar (drag&drop). Se usan métodos derivados y queries @Modifying para desplazar posiciones respetando las UNIQUE (board_id, position) y UNIQUE (list_id, position).
+Archivos en src/main/java/com/aruidev/kanbeeapi/repository/
+
+`BoardRepository.java`
+```java
+package com.aruidev.kanbeeapi.repository;
+
+import com.aruidev.kanbeeapi.entity.Board;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface BoardRepository extends JpaRepository<Board, UUID> {
+
+    // Carga eager controlada de listas y tareas (evita N+1)
+    @EntityGraph(attributePaths = {"boardLists", "boardLists.tasks"})
+    Optional<Board> findWithBoardListsById(UUID id);
+
+    boolean existsById(UUID id);
+}
+```
+
+`BoardListRepository.java`
+```java
+package com.aruidev.kanbeeapi.repository;
+
+import com.aruidev.kanbeeapi.entity.BoardList;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface BoardListRepository extends JpaRepository<BoardList, Long> {
+
+    // Listas de un board ordenadas
+    List<BoardList> findByBoard_IdOrderByPositionAsc(UUID boardId);
+
+    // Última (mayor) posición para insertar al final
+    Optional<BoardList> findTopByBoard_IdOrderByPositionDesc(UUID boardId);
+
+    // Desplaza +1 todas las posiciones >= start (usar al insertar en medio)
+    @Modifying
+    @Query("UPDATE BoardList bl SET bl.position = bl.position + 1 " +
+           "WHERE bl.board.id = :boardId AND bl.position >= :startPosition")
+    int shiftPositionsUpFrom(UUID boardId, int startPosition);
+
+    // Mueve hacia abajo (posicion -1) dentro de un rango (cuando se extrae un elemento hacia adelante)
+    @Modifying
+    @Query("UPDATE BoardList bl SET bl.position = bl.position - 1 " +
+           "WHERE bl.board.id = :boardId AND bl.position > :from AND bl.position <= :to")
+    int closeGapAfterMoveDown(UUID boardId, int from, int to);
+
+    // Mueve hacia arriba (posicion +1) dentro de un rango (cuando se extrae un elemento hacia atrás)
+    @Modifying
+    @Query("UPDATE BoardList bl SET bl.position = bl.position + 1 " +
+           "WHERE bl.board.id = :boardId AND bl.position >= :to AND bl.position < :from")
+    int closeGapAfterMoveUp(UUID boardId, int from, int to);
+
+    boolean existsById(Long id);
+}
+```
+
+`TaskRepository.java`
+```java
+package com.aruidev.kanbeeapi.repository;
+
+import com.aruidev.kanbeeapi.entity.Task;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface TaskRepository extends JpaRepository<Task, Long> {
+
+    // Tareas de una lista ordenadas
+    List<Task> findByBoardList_IdOrderByPositionAsc(Long listId);
+
+    // Última posición en la lista
+    Optional<Task> findTopByBoardList_IdOrderByPositionDesc(Long listId);
+
+    // Desplazar posiciones al insertar
+    @Modifying
+    @Query("UPDATE Task t SET t.position = t.position + 1 " +
+           "WHERE t.boardList.id = :listId AND t.position >= :startPosition")
+    int shiftPositionsUpFrom(Long listId, int startPosition);
+
+    // Reordenar rango (movimiento hacia adelante)
+    @Modifying
+    @Query("UPDATE Task t SET t.position = t.position - 1 " +
+           "WHERE t.boardList.id = :listId AND t.position > :from AND t.position <= :to")
+    int closeGapAfterMoveDown(Long listId, int from, int to);
+
+    // Reordenar rango (movimiento hacia atrás)
+    @Modifying
+    @Query("UPDATE Task t SET t.position = t.position + 1 " +
+           "WHERE t.boardList.id = :listId AND t.position >= :to AND t.position < :from")
+    int closeGapAfterMoveUp(Long listId, int from, int to);
+}
+```
+
+### Notas de uso
+ 
+> - En servicios anotar métodos mutadores con @Transactional. 
+> - Ajustar orden de reordenamiento: 1) desplazar rango 2) set nueva posición del elemento movido.
+> - Recomendado en application.properties: spring.jpa.open-in-view=false para controlar cargas en servicio.
+> - Validar conflictos DataIntegrityViolationException por las UNIQUE en posición.
