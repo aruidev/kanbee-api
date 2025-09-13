@@ -147,7 +147,7 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 
 ### DTOs
 - Con Java 21 puedes migrar muchos DTOs a `record` para reducir código (solo en petición/respuesta).
-- `taskCount` se deriva: marcarlo como calculado en el mapper, evitar setter público.
+- `cardCount` se deriva: marcarlo como calculado en el mapper, evitar setter público.
 
 ### Capa de persistencia (pendiente)
 - Repositorios con métodos:
@@ -303,8 +303,8 @@ CREATE TABLE cards (
 -- Create indexes for performance optimization
 CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
 CREATE INDEX idx_board_lists_position ON board_lists(board_id, position);
-CREATE INDEX idx_tasks_list_id ON cards(list_id);
-CREATE INDEX idx_tasks_position ON cards(list_id, position);
+CREATE INDEX idx_cards_list_id ON cards(list_id);
+CREATE INDEX idx_cards_position ON cards(list_id, position);
 ```
 
 > Se guarda seed SQL en `sql/supabase/seed.sql`.
@@ -483,16 +483,16 @@ public class BoardList {
     this.board = board;
   }
 
-  public Set<Card> getTasks() {
+  public Set<Card> getCards() {
     return cards;
   }
 
-  public void addTask(Card card) {
+  public void addCard(Card card) {
     cards.add(card);
     card.setBoardList(this);
   }
 
-  public void removeTask(Card card) {
+  public void removeCard(Card card) {
     cards.remove(card);
     card.setBoardList(null);
   }
@@ -516,7 +516,7 @@ public class BoardList {
 }
 ```
 
-#### 3. Crear Task.java:
+#### 3. Crear Card.java:
 
 ```java
 package com.aruidev.kanbeeapi.entity;
@@ -532,10 +532,10 @@ import java.time.LocalDateTime;
 @Table(
         name = "cards",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uq_tasks_list_position", columnNames = {"list_id", "position"})
+                @UniqueConstraint(name = "uq_cards_list_position", columnNames = {"list_id", "position"})
         }
 )
-public class Task {
+public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -563,8 +563,8 @@ public class Task {
     @JsonIgnore
     private BoardList boardList;
 
-    public Task() {}
-    public Task(String title, String description, Integer position) {
+    public Card() {}
+    public Card(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
@@ -585,15 +585,10 @@ public class Task {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Task)) return false;
-        return id != null && id.equals(((Task) o).id);
+        if (!(o instanceof Card)) return false;
+        return id != null && id.equals(((Card) o).id);
     }
     @Override
-    public int hashCode() { return id != null ? id.hashCode() : 0; }
-    @Override
-    public String toString() {
-        return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
-    }
 }
 ```
 
@@ -725,7 +720,7 @@ public class BoardListResponseDTO {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private List<CardResponseDTO> cards;
-  private Integer taskCount; // Para el contador de tareas
+  private Integer cardCount; // Para el contador de tareas
 
   // Constructor vacío
   public BoardListResponseDTO() {
@@ -780,21 +775,21 @@ public class BoardListResponseDTO {
     this.updatedAt = updatedAt;
   }
 
-  public List<CardResponseDTO> getTasks() {
+  public List<CardResponseDTO> getCards() {
     return cards;
   }
 
-  public void setTasks(List<CardResponseDTO> cards) {
+  public void setCards(List<CardResponseDTO> cards) {
     this.cards = cards;
-    this.taskCount = cards != null ? cards.size() : 0;
+    this.cardCount = cards != null ? cards.size() : 0;
   }
 
-  public Integer getTaskCount() {
-    return taskCount;
+  public Integer getCardCount() {
+    return cardCount;
   }
 
-  public void setTaskCount(Integer taskCount) {
-    this.taskCount = taskCount;
+  public void setCardCount(Integer cardCount) {
+    this.cardCount = cardCount;
   }
 }
 ```
@@ -833,9 +828,9 @@ public class BoardListMoveDTO {
 }
 ```
 
-## 3. DTOs para Task
+## 3. DTOs para Card
 
-### `TaskCreateDTO.java`
+### `CardCreateDTO.java`
 ```java
 package com.aruidev.kanbeeapi.dto;
 
@@ -843,7 +838,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Min;
 
-public class TaskCreateDTO {
+public class CardCreateDTO {
 
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 255, message = "Title must be less than 255 characters")
@@ -856,9 +851,9 @@ public class TaskCreateDTO {
     private Integer position = 0;
 
     // Constructores
-    public TaskCreateDTO() {}
+    public CardCreateDTO() {}
 
-    public TaskCreateDTO(String title, String description, Integer position) {
+    public CardCreateDTO(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
@@ -876,13 +871,13 @@ public class TaskCreateDTO {
 }
 ```
 
-### `TaskResponseDTO.java`
+### `CardResponseDTO.java`
 ```java
 package com.aruidev.kanbeeapi.dto;
 
 import java.time.LocalDateTime;
 
-public class TaskResponseDTO {
+public class CardResponseDTO {
 
     private Long id;
     private String title;
@@ -892,9 +887,9 @@ public class TaskResponseDTO {
     private LocalDateTime updatedAt;
 
     // Constructor vacío
-    public TaskResponseDTO() {}
+    public CardResponseDTO() {}
 
-    public TaskResponseDTO(Long id, String title, String description, Integer position,
+    public CardResponseDTO(Long id, String title, String description, Integer position,
                           LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -925,14 +920,14 @@ public class TaskResponseDTO {
 }
 ```
 
-### `TaskMoveDTO.java`
+### `CardMoveDTO.java`
 ```java
 package com.aruidev.kanbeeapi.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 
-public class TaskMoveDTO {
+public class CardMoveDTO {
 
     @NotNull(message = "List ID cannot be null")
     private Long listId;
@@ -942,9 +937,9 @@ public class TaskMoveDTO {
     private Integer position;
 
     // Constructores
-    public TaskMoveDTO() {}
+    public CardMoveDTO() {}
 
-    public TaskMoveDTO(Long listId, Integer position) {
+    public CardMoveDTO(Long listId, Integer position) {
         this.listId = listId;
         this.position = position;
     }
@@ -967,8 +962,8 @@ public class TaskMoveDTO {
 - ✅ `@NotNull` para campos requeridos
 
 ### Features agregadas:
-- ✅ **Task counter** en `BoardListResponseDTO`
-- ✅ **DTOs específicos** para drag-and-drop (`TaskMoveDTO`, `BoardListMoveDTO`)
+- ✅ **Card counter** en `BoardListResponseDTO`
+- ✅ **DTOs específicos** para drag-and-drop (`CardMoveDTO`, `BoardListMoveDTO`)
 - ✅ **Separación clara** entre Create/Response DTOs
 
 ### Próximos pasos recomendados (prioridad)
@@ -992,11 +987,13 @@ SQL con restricciones únicas y triggers de update_at (para editar datos fuera d
 ### REBUILD DESTRUCTIVA
 
 ```sqL
+-- Rebuild limpio (usar solo si puedes perder datos)
+
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Idempotency
+-- Drop previo (idempotente)
 DROP TRIGGER IF EXISTS trg_cards_updated_at ON cards;
 DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
 DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
@@ -1005,7 +1002,7 @@ DROP TABLE IF EXISTS cards CASCADE;
 DROP TABLE IF EXISTS board_lists CASCADE;
 DROP TABLE IF EXISTS boards CASCADE;
 
--- updated_at
+-- Función para mantener updated_at
 CREATE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -1014,7 +1011,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Tables
+-- Tablas
 CREATE TABLE boards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -1043,7 +1040,83 @@ CREATE TABLE cards (
     CONSTRAINT uq_cards_list_position UNIQUE (list_id, position)
 );
 
--- Index
+-- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
+CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
+CREATE INDEX idx_cards_list_id ON cards(list_id);
+
+-- Triggers updated_at
+CREATE TRIGGER trg_boards_updated_at
+BEFORE UPDATE ON boards
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_board_lists_updated_at
+BEFORE UPDATE ON board_lists
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_cards_updated_at
+BEFORE UPDATE ON cards
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+COMMIT;
+```
+
+### REBUILD INCREMENTAL (si no quieres perder datos)
+
+```sql
+-- Rebuild limpio (usar solo si puedes perder datos)
+
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop previo (idempotente)
+DROP TRIGGER IF EXISTS trg_cards_updated_at ON cards;
+DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
+DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
+DROP FUNCTION IF EXISTS set_updated_at();
+DROP TABLE IF EXISTS cards CASCADE;
+DROP TABLE IF EXISTS board_lists CASCADE;
+DROP TABLE IF EXISTS boards CASCADE;
+
+-- Función para mantener updated_at
+CREATE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Tablas
+CREATE TABLE boards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE board_lists (
+    id SERIAL PRIMARY KEY,
+    board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_board_lists_board_position UNIQUE (board_id, position)
+);
+
+CREATE TABLE cards (
+    id SERIAL PRIMARY KEY,
+    list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_cards_list_position UNIQUE (list_id, position)
+);
+
+-- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
 CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
 CREATE INDEX idx_cards_list_id ON cards(list_id);
 
@@ -1233,16 +1306,16 @@ public class BoardList {
     this.board = board;
   }
 
-  public Set<Card> getTasks() {
+  public Set<Card> getCards() {
     return cards;
   }
 
-  public void addTask(Card card) {
+  public void addCard(Card card) {
     cards.add(card);
     card.setBoardList(this);
   }
 
-  public void removeTask(Card card) {
+  public void removeCard(Card card) {
     cards.remove(card);
     card.setBoardList(null);
   }
@@ -1266,7 +1339,7 @@ public class BoardList {
 }
 ```
 
-`Task.java`
+`Card.java`
 
 ```java
 package com.aruidev.kanbeeapi.entity;
@@ -1282,10 +1355,10 @@ import java.time.LocalDateTime;
 @Table(
         name = "cards",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uq_tasks_list_position", columnNames = {"list_id", "position"})
+                @UniqueConstraint(name = "uq_cards_list_position", columnNames = {"list_id", "position"})
         }
 )
-public class Task {
+public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -1313,8 +1386,8 @@ public class Task {
     @JsonIgnore
     private BoardList boardList;
 
-    public Task() {}
-    public Task(String title, String description, Integer position) {
+    public Card() {}
+    public Card(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
@@ -1335,8 +1408,8 @@ public class Task {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Task)) return false;
-        return id != null && id.equals(((Task) o).id);
+        if (!(o instanceof Card)) return false;
+        return id != null && id.equals(((Card) o).id);
     }
     @Override
     public int hashCode() { return id != null ? id.hashCode() : 0; }
@@ -1416,13 +1489,13 @@ public interface BoardListRepository extends JpaRepository<BoardList, Long> {
 }
 ```
 
-`TaskRepository.java`
+`CardRepository.java`
 
 ```java
 package com.aruidev.kanbeeapi.repository;
 
 import com.aruidev.kanbeeapi.entity.Card;
-import com.aruidev.kanbeeapi.entity.Task;
+import com.aruidev.kanbeeapi.entity.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -1430,7 +1503,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface TaskRepository extends JpaRepository<Card, Long> {
+public interface CardRepository extends JpaRepository<Card, Long> {
 
   // Tareas de una lista ordenadas
   List<Card> findByBoardList_IdOrderByPositionAsc(Long listId);
