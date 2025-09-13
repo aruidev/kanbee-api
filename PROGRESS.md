@@ -142,7 +142,7 @@ CREATE INDEX idx_tasks_position ON tasks(list_id, position);
 
 ### Tarea 4: Definir entidades JPA ✅ COMPLETADO
 
-#### Crear las clases de entidad 
+#### Crear las clases de entidad
 
 Vamos a crear las clases Java que mapean las tablas. Crear estas clases en `src/main/java/com/aruidev/kanbeeapi/entity/`:
 
@@ -161,40 +161,40 @@ import java.util.UUID;
 @Entity
 @Table(name = "boards")
 public class Board {
-    
+
     @Id
     @GeneratedValue
     private UUID id;
-    
+
     @Column(nullable = false)
     private String title;
-    
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardList> boardLists;
-    
+
     // Constructor vacío (requerido por JPA)
     public Board() {}
-    
+
     // Constructor con título
     public Board(String title) {
         this.title = title;
     }
-    
+
     // Getters y setters...
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
 public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -204,7 +204,7 @@ public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; 
     public List<BoardList> getBoardLists() { return boardLists; }
     public void setBoardLists(List<BoardList> boardLists) { this.boardLists = boardLists; }
 }
-```  
+```
 
 #### 2. Crear BoardList.java:
 
@@ -213,23 +213,24 @@ package com.aruidev.kanbeeapi.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "board_lists")
 public class BoardList {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false)
     private String title;
-    
+
     @Column(nullable = false)
     private Integer position = 0;
-    
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -237,47 +238,47 @@ public class BoardList {
     @UpdateTimestamp
     @Column (name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     // Relación Many-to-One con Board
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
-    
+
     // Relación One-to-Many con Tasks
     @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
-    
+
     // Constructores
     public BoardList() {}
-    
+
     public BoardList(String title, Integer position) {
         this.title = title;
         this.position = position;
     }
-    
+
     // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
+
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public Board getBoard() { return board; }
     public void setBoard(Board board) { this.board = board; }
-    
+
     public List<Task> getTasks() { return tasks; }
     public void setTasks(List<Task> tasks) { this.tasks = tasks; }
 }
-```  
+```
 
 #### 3. Crear Task.java:
 
@@ -292,65 +293,65 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tasks")
 public class Task {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false)
     private String title;
-    
+
     @Column(columnDefinition = "TEXT")
     private String description;
-    
+
     @Column(nullable = false)
     private Integer position = 0;
-    
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     // Relación Many-to-One con BoardList
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "list_id", nullable = false)
     private BoardList boardList;
-    
+
     // Constructores
     public Task() {}
-    
+
     public Task(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
     }
-    
+
     // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
+
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
+
     public BoardList getBoardList() { return boardList; }
     public void setBoardList(BoardList boardList) { this.boardList = boardList; }
 }
-```  
+```
 
 ### Tarea 5: Kanbee DTOs - Data Transfer Objects 🚧 EN PROGRESO
 
@@ -366,18 +367,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class BoardCreateDTO {
-    
+
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 255, message = "Title must be less than 255 characters")
     private String title;
-    
+
     // Constructor vacío
     public BoardCreateDTO() {}
-    
+
     public BoardCreateDTO(String title) {
         this.title = title;
     }
-    
+
     // Getters y setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -393,36 +394,36 @@ import java.util.List;
 import java.util.UUID;
 
 public class BoardResponseDTO {
-    
+
     private UUID id;
     private String title;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<BoardListResponseDTO> boardLists;
-    
+
     // Constructor vacío
     public BoardResponseDTO() {}
-    
+
     public BoardResponseDTO(UUID id, String title, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
-    
+
     // Getters y setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
+
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
+
     public List<BoardListResponseDTO> getBoardLists() { return boardLists; }
     public void setBoardLists(List<BoardListResponseDTO> boardLists) { this.boardLists = boardLists; }
 }
@@ -439,26 +440,26 @@ import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Min;
 
 public class BoardListCreateDTO {
-    
+
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 255, message = "Title must be less than 255 characters")
     private String title;
-    
+
     @Min(value = 0, message = "Position must be non-negative")
     private Integer position = 0;
-    
+
     // Constructores
     public BoardListCreateDTO() {}
-    
+
     public BoardListCreateDTO(String title, Integer position) {
         this.title = title;
         this.position = position;
     }
-    
+
     // Getters y setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
 }
@@ -472,7 +473,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class BoardListResponseDTO {
-    
+
     private Long id;
     private String title;
     private Integer position;
@@ -480,10 +481,10 @@ public class BoardListResponseDTO {
     private LocalDateTime updatedAt;
     private List<TaskResponseDTO> tasks;
     private Integer taskCount; // Para el contador de tareas
-    
+
     // Constructor vacío
     public BoardListResponseDTO() {}
-    
+
     public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -491,29 +492,29 @@ public class BoardListResponseDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
-    
+
     // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
+
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public List<TaskResponseDTO> getTasks() { return tasks; }
-    public void setTasks(List<TaskResponseDTO> tasks) { 
+    public void setTasks(List<TaskResponseDTO> tasks) {
         this.tasks = tasks;
         this.taskCount = tasks != null ? tasks.size() : 0;
     }
-    
+
     public Integer getTaskCount() { return taskCount; }
     public void setTaskCount(Integer taskCount) { this.taskCount = taskCount; }
 }
@@ -528,26 +529,26 @@ import jakarta.validation.constraints.Min;
 import java.util.UUID;
 
 public class BoardListMoveDTO {
-    
+
     @NotNull(message = "Board ID cannot be null")
     private UUID boardId;
-    
+
     @NotNull(message = "Position cannot be null")
     @Min(value = 0, message = "Position must be non-negative")
     private Integer position;
-    
+
     // Constructores
     public BoardListMoveDTO() {}
-    
+
     public BoardListMoveDTO(UUID boardId, Integer position) {
         this.boardId = boardId;
         this.position = position;
     }
-    
+
     // Getters y setters
     public UUID getBoardId() { return boardId; }
     public void setBoardId(UUID boardId) { this.boardId = boardId; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
 }
@@ -564,33 +565,33 @@ import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Min;
 
 public class TaskCreateDTO {
-    
+
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 255, message = "Title must be less than 255 characters")
     private String title;
-    
+
     @Size(max = 2000, message = "Description must be less than 2000 characters")
     private String description;
-    
+
     @Min(value = 0, message = "Position must be non-negative")
     private Integer position = 0;
-    
+
     // Constructores
     public TaskCreateDTO() {}
-    
+
     public TaskCreateDTO(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
     }
-    
+
     // Getters y setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
 }
@@ -603,18 +604,18 @@ package com.aruidev.kanbeeapi.dto;
 import java.time.LocalDateTime;
 
 public class TaskResponseDTO {
-    
+
     private Long id;
     private String title;
     private String description;
     private Integer position;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     // Constructor vacío
     public TaskResponseDTO() {}
-    
-    public TaskResponseDTO(Long id, String title, String description, Integer position, 
+
+    public TaskResponseDTO(Long id, String title, String description, Integer position,
                           LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -623,27 +624,27 @@ public class TaskResponseDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
-    
+
     // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-    
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
-    
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
+
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
-```  
+```
 
 ### `TaskMoveDTO.java`
 ```java
@@ -653,30 +654,30 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 
 public class TaskMoveDTO {
-    
+
     @NotNull(message = "List ID cannot be null")
     private Long listId;
-    
+
     @NotNull(message = "Position cannot be null")
     @Min(value = 0, message = "Position must be non-negative")
     private Integer position;
-    
+
     // Constructores
     public TaskMoveDTO() {}
-    
+
     public TaskMoveDTO(Long listId, Integer position) {
         this.listId = listId;
         this.position = position;
     }
-    
+
     // Getters y setters
     public Long getListId() { return listId; }
     public void setListId(Long listId) { this.listId = listId; }
-    
+
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
 }
-```  
+```
 
 ## Notas importantes:
 
@@ -760,9 +761,9 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [X] Agregar timestamps automáticos (`@CreationTimestamp`, `@UpdateTimestamp`)
 
 ### Tarea 5 (DTOs):
-- [ ] `BoardCreateDTO`, `BoardResponseDTO`
-- [ ] `ListCreateDTO`, `TaskCreateDTO`
-- [ ] `TaskMoveDTO` para drag-and-drop
+- [X] `BoardCreateDTO`, `BoardResponseDTO`
+- [X] `ListCreateDTO`, `TaskCreateDTO`
+- [X] `TaskMoveDTO` para drag-and-drop
 
 
 ### **Tarea 6: Crear Repositorios JPA**
@@ -816,11 +817,468 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 4. **Git** - Asegurarse de inicializar repositorio en la raíz del proyecto.
 5. **Java LTS > Bleeding edge** - Versiones **no LTS** tienen soporte limitado.
 
-## 📊 Tiempo Invertido Hasta Ahora
-- **Tarea 1** (Spring Boot setup): ~1.5h (incluyó resolución de problemas Maven)
-- **Tarea 2** (Supabase config): ~1h (incluyó configuración de seguridad)
-- **Documentación**: ~0.5h
-- **Total**: ~3h (dentro del estimado de 13-15h total para Milestone 1)
+---
+
+## Observaciones técnicas
+
+### Entidades
+- Considerar `Set<>` en colecciones para evitar duplicados y mejorar `equals`/`hashCode`.
+- Añadir `@JsonIgnore` o mapear siempre vía DTO para evitar problemas de serialización con `LAZY`.
+- Añadir `equals`/`hashCode` basados en `id` (cuando no sea null) y quizá `toString` seguro (sin relaciones).
+- Unificar tipos: tablas usan `SERIAL` (int) pero entidades usan `Long`; consistente, pero podrías migrar a `BIGSERIAL` o ajustar a `Integer`.
+
+### Modelo relacional
+- Falta `ON UPDATE` triggers para mantener `updated_at` si quieres consistencia también a nivel SQL (opcional; Hibernate ya lo maneja).
+- Podrías agregar una restricción única (`board_id`, `position`) y (`list_id`, `position`) para garantizar orden estable.
+
+### DTOs
+- Con Java 21 puedes migrar muchos DTOs a `record` para reducir código (solo en petición/respuesta).
+- `taskCount` se deriva: marcarlo como calculado en el mapper, evitar setter público.
+
+### Capa de persistencia (pendiente)
+- Repositorios con métodos:
+  - `List<BoardList> findByBoardIdOrderByPositionAsc(UUID boardId)`
+  - `List<Task> findByBoardListIdOrderByPositionAsc(Long listId)`
+- Añadir métodos para obtener máximo `position` al insertar al final.
+
+### Servicios
+- Definir transacciones: `@Transactional(readOnly = true)` por defecto y mutaciones con `@Transactional`.
+- Encapsular lógica de reordenamiento (shift de posiciones) en métodos dedicados para evitar inconsistencias.
+
+### Configuración
+- Añadir `spring.jpa.open-in-view=false` para forzar carga controlada en servicios.
+- Considerar `springdoc.api-docs.path=/api-docs` y agrupar endpoints bajo `/api/v1`.
+
+### Errores y manejo
+- Planear `@ControllerAdvice` + `@ExceptionHandler` para `EntityNotFound`, validaciones y mensajes uniformes JSON.
+
+### Performance / futuro
+- Si reordenamientos son frecuentes, podrías usar técnica de spacing (posiciones tipo 100, 200...) para minimizar recalculos.
+- Añadir auditoría futura (`createdBy`) si luego agregas usuarios.
+
+### Seguridad
+- Aunque ahora sea público, dejar preparado un filtro CORS global + futura capa auth (JWT o API key simple).
+
+### Testing (cuando llegues)
+- Usar `@DataJpaTest` para validar orden y cascadas.
+- Tests de servicio para reordenar listas/tareas (incluye colisiones y huecos).
+
+---
+
+### Próximos pasos recomendados (prioridad)
+- Repositorios con métodos ordenados.
+- Mappers entidad ↔ DTO (manual o MapStruct).
+- Servicios con transacciones y lógica de movimiento.
+- Controladores + validaciones + manejo de errores global.
+- Desactivar Open Session in View y verificar cargas necesarias.
+- Swagger y prueba end-to-end con datos semilla.
 
 ---
 *Última actualización: 11-09-2025 - Proyecto progresando según roadmap*
+
+---
+
+# Modificaciones 1
+> 13-09-2024
+
+SQL con restricciones únicas y triggers de update_at (para editar datos fuera de Hibernate):
+
+### REBUILD DESTRUCTIVA
+
+```sqL
+-- Rebuild limpio (usar solo si puedes perder datos)
+
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop previo (idempotente)
+DROP TRIGGER IF EXISTS trg_tasks_updated_at ON tasks;
+DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
+DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
+DROP FUNCTION IF EXISTS set_updated_at();
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS board_lists CASCADE;
+DROP TABLE IF EXISTS boards CASCADE;
+
+-- Función para mantener updated_at
+CREATE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Tablas
+CREATE TABLE boards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE board_lists (
+    id SERIAL PRIMARY KEY,
+    board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_board_lists_board_position UNIQUE (board_id, position)
+);
+
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_tasks_list_position UNIQUE (list_id, position)
+);
+
+-- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
+CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
+CREATE INDEX idx_tasks_list_id ON tasks(list_id);
+
+-- Triggers updated_at
+CREATE TRIGGER trg_boards_updated_at
+BEFORE UPDATE ON boards
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_board_lists_updated_at
+BEFORE UPDATE ON board_lists
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_tasks_updated_at
+BEFORE UPDATE ON tasks
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+COMMIT;
+```
+
+### REBUILD INCREMENTAL (si no quieres perder datos)
+
+```sql
+-- Rebuild limpio (usar solo si puedes perder datos)
+
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Drop previo (idempotente)
+DROP TRIGGER IF EXISTS trg_tasks_updated_at ON tasks;
+DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
+DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
+DROP FUNCTION IF EXISTS set_updated_at();
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS board_lists CASCADE;
+DROP TABLE IF EXISTS boards CASCADE;
+
+-- Función para mantener updated_at
+CREATE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Tablas
+CREATE TABLE boards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE board_lists (
+    id SERIAL PRIMARY KEY,
+    board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_board_lists_board_position UNIQUE (board_id, position)
+);
+
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_tasks_list_position UNIQUE (list_id, position)
+);
+
+-- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
+CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
+CREATE INDEX idx_tasks_list_id ON tasks(list_id);
+
+-- Triggers updated_at
+CREATE TRIGGER trg_boards_updated_at
+BEFORE UPDATE ON boards
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_board_lists_updated_at
+BEFORE UPDATE ON board_lists
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_tasks_updated_at
+BEFORE UPDATE ON tasks
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+COMMIT;
+```
+
+## Cambios en entidades: Se usa Set en lugar de List para evitar duplicados y mejorar equals/hashCode.
+
+`Board.java`
+
+```java
+package com.aruidev.kanbeeapi.entity;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
+
+@Entity
+@Table(name = "boards")
+public class Board {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("position ASC")
+    private Set<BoardList> boardLists = new LinkedHashSet<>();
+
+    public Board() {}
+    public Board(String title) { this.title = title; }
+
+    public UUID getId() { return id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public Set<BoardList> getBoardLists() { return boardLists; }
+
+    public void addBoardList(BoardList list) {
+        boardLists.add(list);
+        list.setBoard(this);
+    }
+    public void removeBoardList(BoardList list) {
+        boardLists.remove(list);
+        list.setBoard(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Board)) return false;
+        return id != null && id.equals(((Board) o).id);
+    }
+    @Override
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+        return "Board{id=" + id + ", title='" + title + "'}";
+    }
+}
+```
+
+`BoardList.java`
+
+```java
+package com.aruidev.kanbeeapi.entity;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Entity
+@Table(
+        name = "board_lists",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_board_lists_board_position", columnNames = {"board_id", "position"})
+        }
+)
+public class BoardList {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @Column(nullable = false)
+    private Integer position = 0;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "board_id", nullable = false)
+    @JsonIgnore
+    private Board board;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("position ASC")
+    private Set<Task> tasks = new LinkedHashSet<>();
+
+    public BoardList() {}
+    public BoardList(String title, Integer position) {
+        this.title = title;
+        this.position = position;
+    }
+
+    public Long getId() { return id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public Board getBoard() { return board; }
+    public void setBoard(Board board) { this.board = board; }
+    public Set<Task> getTasks() { return tasks; }
+
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setBoardList(this);
+    }
+    public void removeTask(Task task) {
+        tasks.remove(task);
+        task.setBoardList(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BoardList)) return false;
+        return id != null && id.equals(((BoardList) o).id);
+    }
+    @Override
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+        return "BoardList{id=" + id + ", title='" + title + "', position=" + position + "}";
+    }
+}
+```
+
+`Task.java`
+
+```java
+package com.aruidev.kanbeeapi.entity;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(
+        name = "tasks",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_tasks_list_position", columnNames = {"list_id", "position"})
+        }
+)
+public class Task {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(nullable = false)
+    private Integer position = 0;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "list_id", nullable = false)
+    @JsonIgnore
+    private BoardList boardList;
+
+    public Task() {}
+    public Task(String title, String description, Integer position) {
+        this.title = title;
+        this.description = description;
+        this.position = position;
+    }
+
+    public Long getId() { return id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public BoardList getBoardList() { return boardList; }
+    public void setBoardList(BoardList boardList) { this.boardList = boardList; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task)) return false;
+        return id != null && id.equals(((Task) o).id);
+    }
+    @Override
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+        return "Task{id=" + id + ", title='" + title + "', position=" + position + "}";
+    }
+}
+```
