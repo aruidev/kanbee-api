@@ -15,8 +15,8 @@ CREATE TABLE board_lists (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create table tasks
-CREATE TABLE tasks (
+-- Create table cards
+CREATE TABLE cards (
     id SERIAL PRIMARY KEY,
     list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -29,5 +29,5 @@ CREATE TABLE tasks (
 -- Create indexes for performance optimization
 CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
 CREATE INDEX idx_board_lists_position ON board_lists(board_id, position);
-CREATE INDEX idx_tasks_list_id ON tasks(list_id);
-CREATE INDEX idx_tasks_position ON tasks(list_id, position);
+CREATE INDEX idx_cards_list_id ON cards(list_id);
+CREATE INDEX idx_cards_position ON cards(list_id, position);

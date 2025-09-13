@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Min;
 
-public class TaskCreateDTO {
+public class CardCreateDTO {
 
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 255, message = "Title must be less than 255 characters")
@@ -17,9 +17,9 @@ public class TaskCreateDTO {
     private Integer position = 0;
 
     // Constructores
-    public TaskCreateDTO() {}
+    public CardCreateDTO() {}
 
-    public TaskCreateDTO(String title, String description, Integer position) {
+    public CardCreateDTO(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;

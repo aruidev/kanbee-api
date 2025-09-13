@@ -3,7 +3,7 @@ package com.aruidev.kanbeeapi.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 
-public class TaskMoveDTO {
+public class CardMoveDTO {
 
     @NotNull(message = "List ID cannot be null")
     private Long listId;
@@ -13,9 +13,9 @@ public class TaskMoveDTO {
     private Integer position;
 
     // Constructores
-    public TaskMoveDTO() {}
+    public CardMoveDTO() {}
 
-    public TaskMoveDTO(Long listId, Integer position) {
+    public CardMoveDTO(Long listId, Integer position) {
         this.listId = listId;
         this.position = position;
     }

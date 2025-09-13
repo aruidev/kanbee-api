@@ -10,8 +10,8 @@ public class BoardListResponseDTO {
     private Integer position;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<TaskResponseDTO> tasks;
-    private Integer taskCount; // Para el contador de tareas
+    private List<CardResponseDTO> cards;
+    private Integer cardCount; // Para el contador de cards
 
     // Constructor vacío
     public BoardListResponseDTO() {}
@@ -40,12 +40,12 @@ public class BoardListResponseDTO {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public List<TaskResponseDTO> getTasks() { return tasks; }
-    public void setTasks(List<TaskResponseDTO> tasks) {
-        this.tasks = tasks;
-        this.taskCount = tasks != null ? tasks.size() : 0;
+    public List<CardResponseDTO> getCards() { return cards; }
+    public void setCards(List<CardResponseDTO> cards) {
+        this.cards = cards;
+        this.cardCount = cards != null ? cards.size() : 0;
     }
 
-    public Integer getTaskCount() { return taskCount; }
-    public void setTaskCount(Integer taskCount) { this.taskCount = taskCount; }
+    public Integer getCardCount() { return cardCount; }
+    public void setCardCount(Integer cardCount) { this.cardCount = cardCount; }
 }

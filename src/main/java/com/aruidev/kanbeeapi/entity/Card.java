@@ -8,13 +8,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "tasks",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uq_tasks_list_position", columnNames = {"list_id", "position"})
-        }
-)
-public class Task {
+@Table(name = "cards")
+public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,13 +32,12 @@ public class Task {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "list_id", nullable = false)
-    @JsonIgnore
     private BoardList boardList;
 
-    public Task() {}
-    public Task(String title, String description, Integer position) {
+    public Card() {}
+    public Card(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
@@ -64,13 +58,13 @@ public class Task {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Task)) return false;
-        return id != null && id.equals(((Task) o).id);
+        if (!(o instanceof Card)) return false;
+        return id != null && id.equals(((Card) o).id);
     }
     @Override
     public int hashCode() { return id != null ? id.hashCode() : 0; }
     @Override
     public String toString() {
-        return "Task{id=" + id + ", title='" + title + "', position=" + position + "}";
+        return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
     }
 }

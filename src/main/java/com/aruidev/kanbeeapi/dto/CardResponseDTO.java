@@ -2,7 +2,7 @@ package com.aruidev.kanbeeapi.dto;
 
 import java.time.LocalDateTime;
 
-public class TaskResponseDTO {
+public class CardResponseDTO {
 
     private Long id;
     private String title;
@@ -12,9 +12,9 @@ public class TaskResponseDTO {
     private LocalDateTime updatedAt;
 
     // Constructor vacío
-    public TaskResponseDTO() {}
+    public CardResponseDTO() {}
 
-    public TaskResponseDTO(Long id, String title, String description, Integer position,
+    public CardResponseDTO(Long id, String title, String description, Integer position,
                            LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;

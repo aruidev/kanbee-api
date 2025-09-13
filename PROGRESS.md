@@ -1,7 +1,7 @@
 # Kanbee Backend - Progreso del Proyecto
 
 ## 📋 Resumen del Proyecto
-**Kanbee** es una aplicación web tipo Trello que permite gestionar tareas en tableros colaborativos mediante URLs abiertas, inspirada en la organización de las abejas. Este README documenta todo el progreso realizado hasta ahora.
+**Kanbee** es una aplicación web tipo Trello que permite gestionar cards en tableros colaborativos mediante URLs abiertas, inspirada en la organización de las abejas. Este README documenta todo el progreso realizado hasta ahora.
 
 ## 🎯 Stack Tecnológico Decidido
 - **Backend**: Spring Boot + Maven + Java 21
@@ -71,31 +71,31 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [X] Testear conexión Spring Boot ↔ Supabase
 
 ### Tarea 4 (Definir entidades JPA):
-- [X] Crear clases `Board`, `List`, `Task`
+- [X] Crear clases `Board`, `List`, `Card`
 - [X] Configurar relaciones JPA (`@OneToMany`, `@ManyToOne`)
 - [X] Agregar timestamps automáticos (`@CreationTimestamp`, `@UpdateTimestamp`)
 
 ### Tarea 5 (DTOs):
 - [X] `BoardCreateDTO`, `BoardResponseDTO`
-- [X] `ListCreateDTO`, `TaskCreateDTO`
-- [X] `TaskMoveDTO` para drag-and-drop
+- [X] `ListCreateDTO`, `CardCreateDTO`
+- [X] `CardMoveDTO` para drag-and-drop
 
 ### **Tarea 6: Crear Repositorios JPA**
 - [X] Crear `BoardRepository` extendiendo `JpaRepository<Board, UUID>`
 - [X] Crear `BoardListRepository` extendiendo `JpaRepository<BoardList, Long>`
-- [X] Crear `TaskRepository` extendiendo `JpaRepository<Task, Long>`
-- [ ] Añadir queries personalizadas si se necesita ordenamiento (ej. `findByBoardIdOrderByPositionAsc`)
+- [X] Crear `CardRepository` extendiendo `JpaRepository<Card, Long>`
+- [X] Añadir queries personalizadas si se necesita ordenamiento (ej. `findByBoardIdOrderByPositionAsc`)
 
 ### **Tarea 7: Crear Servicios (lógica de negocio)**
-- [ ] Implementar `BoardService`, `BoardListService`, `TaskService`
+- [ ] Implementar `BoardService`, `BoardListService`, `CardService`
 - [ ] Mapear **Entidades ↔ DTOs**
 - [ ] Incluir validaciones de negocio (board existe, lista existe, etc.)
 
 ### **Tarea 8: Crear Controladores REST**
 - [ ] `BoardController`: endpoints CRUD para tableros
 - [ ] `BoardListController`: endpoints CRUD para listas
-- [ ] `TaskController`: endpoints CRUD para tareas
-- [ ] Endpoints de movimiento drag-and-drop (`PATCH /tasks/{id}/move`, `PATCH /lists/{id}/move`)
+- [ ] `CardController`: endpoints CRUD para cards
+- [ ] Endpoints de movimiento drag-and-drop (`PATCH /cards/{id}/move`, `PATCH /lists/{id}/move`)
 - [ ] Usar `@Valid` y `@RequestBody` para validar DTOs
 
 ### **Tarea 9: Configurar CORS**
@@ -152,7 +152,7 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 ### Capa de persistencia (pendiente)
 - Repositorios con métodos:
   - `List<BoardList> findByBoardIdOrderByPositionAsc(UUID boardId)`
-  - `List<Task> findByBoardListIdOrderByPositionAsc(Long listId)`
+  - `List<Card> findByBoardListIdOrderByPositionAsc(Long listId)`
 - Añadir métodos para obtener máximo `position` al insertar al final.
 
 ### Servicios
@@ -175,7 +175,7 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 
 ### Testing (cuando llegues)
 - Usar `@DataJpaTest` para validar orden y cascadas.
-- Tests de servicio para reordenar listas/tareas (incluye colisiones y huecos).
+- Tests de servicio para reordenar listas/cards (incluye colisiones y huecos).
 
 ---
 
@@ -289,8 +289,8 @@ CREATE TABLE board_lists (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create table tasks
-CREATE TABLE tasks (
+-- Create table cards
+CREATE TABLE cards (
     id SERIAL PRIMARY KEY,
     list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -303,8 +303,8 @@ CREATE TABLE tasks (
 -- Create indexes for performance optimization
 CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
 CREATE INDEX idx_board_lists_position ON board_lists(board_id, position);
-CREATE INDEX idx_tasks_list_id ON tasks(list_id);
-CREATE INDEX idx_tasks_position ON tasks(list_id, position);
+CREATE INDEX idx_tasks_list_id ON cards(list_id);
+CREATE INDEX idx_tasks_position ON cards(list_id, position);
 ```
 
 > Se guarda seed SQL en `sql/supabase/seed.sql`.
@@ -323,8 +323,11 @@ package com.aruidev.kanbeeapi.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -335,43 +338,53 @@ public class Board {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardList> boardLists;
+    @JsonIgnore
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("position ASC")
+    private Set<BoardList> boardLists = new LinkedHashSet<>();
 
-    // Constructor vacío (requerido por JPA)
     public Board() {}
+    public Board(String title) { this.title = title; }
 
-    // Constructor con título
-    public Board(String title) {
-        this.title = title;
-    }
-
-    // Getters y setters...
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-
     public LocalDateTime getCreatedAt() { return createdAt; }
-public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Set<BoardList> getBoardLists() { return boardLists; }
 
-    public List<BoardList> getBoardLists() { return boardLists; }
-    public void setBoardLists(List<BoardList> boardLists) { this.boardLists = boardLists; }
+    public void addBoardList(BoardList list) {
+        boardLists.add(list);
+        list.setBoard(this);
+    }
+    public void removeBoardList(BoardList list) {
+        boardLists.remove(list);
+        list.setBoard(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Board)) return false;
+        return id != null && id.equals(((Board) o).id);
+    }
+    @Override
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+        return "Board{id=" + id + ", title='" + title + "'}";
+    }
 }
 ```
 
@@ -383,69 +396,123 @@ package com.aruidev.kanbeeapi.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "board_lists")
+@Table(
+        name = "board_lists",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_board_lists_board_position", columnNames = {"board_id", "position"})
+        }
+)
 public class BoardList {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false)
-    private String title;
+  @Column(nullable = false, length = 255)
+  private String title;
 
-    @Column(nullable = false)
-    private Integer position = 0;
+  @Column(nullable = false)
+  private Integer position = 0;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+  @CreationTimestamp
+  @Column(name = "created_at", updatable = false)
+  private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column (name = "updated_at")
-    private LocalDateTime updatedAt;
+  @UpdateTimestamp
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
 
-    // Relación Many-to-One con Board
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "board_id", nullable = false)
+  @JsonIgnore
+  private Board board;
 
-    // Relación One-to-Many con Tasks
-    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Task> tasks;
+  @JsonIgnore
+  @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @OrderBy("position ASC")
+  private Set<Card> cards = new LinkedHashSet<>();
 
-    // Constructores
-    public BoardList() {}
+  public BoardList() {
+  }
 
-    public BoardList(String title, Integer position) {
-        this.title = title;
-        this.position = position;
-    }
+  public BoardList(String title, Integer position) {
+    this.title = title;
+    this.position = position;
+  }
 
-    // Getters y setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+  public Long getId() {
+    return id;
+  }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+  public String getTitle() {
+    return title;
+  }
 
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+  public Integer getPosition() {
+    return position;
+  }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+  public void setPosition(Integer position) {
+    this.position = position;
+  }
 
-    public Board getBoard() { return board; }
-    public void setBoard(Board board) { this.board = board; }
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
 
-    public List<Task> getTasks() { return tasks; }
-    public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public Board getBoard() {
+    return board;
+  }
+
+  public void setBoard(Board board) {
+    this.board = board;
+  }
+
+  public Set<Card> getTasks() {
+    return cards;
+  }
+
+  public void addTask(Card card) {
+    cards.add(card);
+    card.setBoardList(this);
+  }
+
+  public void removeTask(Card card) {
+    cards.remove(card);
+    card.setBoardList(null);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BoardList)) return false;
+    return id != null && id.equals(((BoardList) o).id);
+  }
+
+  @Override
+  public int hashCode() {
+    return id != null ? id.hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return "BoardList{id=" + id + ", title='" + title + "', position=" + position + "}";
+  }
 }
 ```
 
@@ -457,17 +524,24 @@ package com.aruidev.kanbeeapi.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tasks")
+@Table(
+        name = "cards",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_tasks_list_position", columnNames = {"list_id", "position"})
+        }
+)
 public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(columnDefinition = "TEXT")
@@ -477,48 +551,49 @@ public class Task {
     private Integer position = 0;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Relación Many-to-One con BoardList
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "list_id", nullable = false)
+    @JsonIgnore
     private BoardList boardList;
 
-    // Constructores
     public Task() {}
-
     public Task(String title, String description, Integer position) {
         this.title = title;
         this.description = description;
         this.position = position;
     }
 
-    // Getters y setters
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }
-
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
     public BoardList getBoardList() { return boardList; }
     public void setBoardList(BoardList boardList) { this.boardList = boardList; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task)) return false;
+        return id != null && id.equals(((Task) o).id);
+    }
+    @Override
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+        return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
+    }
 }
 ```
 
@@ -635,6 +710,7 @@ public class BoardListCreateDTO {
 ```
 
 ### `BoardListResponseDTO.java`
+
 ```java
 package com.aruidev.kanbeeapi.dto;
 
@@ -643,49 +719,83 @@ import java.util.List;
 
 public class BoardListResponseDTO {
 
-    private Long id;
-    private String title;
-    private Integer position;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private List<TaskResponseDTO> tasks;
-    private Integer taskCount; // Para el contador de tareas
+  private Long id;
+  private String title;
+  private Integer position;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
+  private List<CardResponseDTO> cards;
+  private Integer taskCount; // Para el contador de tareas
 
-    // Constructor vacío
-    public BoardListResponseDTO() {}
+  // Constructor vacío
+  public BoardListResponseDTO() {
+  }
 
-    public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.title = title;
-        this.position = position;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
+  public BoardListResponseDTO(Long id, String title, Integer position, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    this.id = id;
+    this.title = title;
+    this.position = position;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
 
-    // Getters y setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+  // Getters y setters
+  public Long getId() {
+    return id;
+  }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
+  public String getTitle() {
+    return title;
+  }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+  public Integer getPosition() {
+    return position;
+  }
 
-    public List<TaskResponseDTO> getTasks() { return tasks; }
-    public void setTasks(List<TaskResponseDTO> tasks) {
-        this.tasks = tasks;
-        this.taskCount = tasks != null ? tasks.size() : 0;
-    }
+  public void setPosition(Integer position) {
+    this.position = position;
+  }
 
-    public Integer getTaskCount() { return taskCount; }
-    public void setTaskCount(Integer taskCount) { this.taskCount = taskCount; }
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
+  public List<CardResponseDTO> getTasks() {
+    return cards;
+  }
+
+  public void setTasks(List<CardResponseDTO> cards) {
+    this.cards = cards;
+    this.taskCount = cards != null ? cards.size() : 0;
+  }
+
+  public Integer getTaskCount() {
+    return taskCount;
+  }
+
+  public void setTaskCount(Integer taskCount) {
+    this.taskCount = taskCount;
+  }
 }
 ```
 
@@ -882,22 +992,20 @@ SQL con restricciones únicas y triggers de update_at (para editar datos fuera d
 ### REBUILD DESTRUCTIVA
 
 ```sqL
--- Rebuild limpio (usar solo si puedes perder datos)
-
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Drop previo (idempotente)
-DROP TRIGGER IF EXISTS trg_tasks_updated_at ON tasks;
+-- Idempotency
+DROP TRIGGER IF EXISTS trg_cards_updated_at ON cards;
 DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
 DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
 DROP FUNCTION IF EXISTS set_updated_at();
-DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS cards CASCADE;
 DROP TABLE IF EXISTS board_lists CASCADE;
 DROP TABLE IF EXISTS boards CASCADE;
 
--- Función para mantener updated_at
+-- updated_at
 CREATE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -906,7 +1014,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Tablas
+-- Tables
 CREATE TABLE boards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -924,7 +1032,7 @@ CREATE TABLE board_lists (
     CONSTRAINT uq_board_lists_board_position UNIQUE (board_id, position)
 );
 
-CREATE TABLE tasks (
+CREATE TABLE cards (
     id SERIAL PRIMARY KEY,
     list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -932,12 +1040,12 @@ CREATE TABLE tasks (
     position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_tasks_list_position UNIQUE (list_id, position)
+    CONSTRAINT uq_cards_list_position UNIQUE (list_id, position)
 );
 
--- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
+-- Index
 CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
-CREATE INDEX idx_tasks_list_id ON tasks(list_id);
+CREATE INDEX idx_cards_list_id ON cards(list_id);
 
 -- Triggers updated_at
 CREATE TRIGGER trg_boards_updated_at
@@ -948,84 +1056,8 @@ CREATE TRIGGER trg_board_lists_updated_at
 BEFORE UPDATE ON board_lists
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TRIGGER trg_tasks_updated_at
-BEFORE UPDATE ON tasks
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-COMMIT;
-```
-
-### REBUILD INCREMENTAL (si no quieres perder datos)
-
-```sql
--- Rebuild limpio (usar solo si puedes perder datos)
-
-BEGIN;
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- Drop previo (idempotente)
-DROP TRIGGER IF EXISTS trg_tasks_updated_at ON tasks;
-DROP TRIGGER IF EXISTS trg_board_lists_updated_at ON board_lists;
-DROP TRIGGER IF EXISTS trg_boards_updated_at ON boards;
-DROP FUNCTION IF EXISTS set_updated_at();
-DROP TABLE IF EXISTS tasks CASCADE;
-DROP TABLE IF EXISTS board_lists CASCADE;
-DROP TABLE IF EXISTS boards CASCADE;
-
--- Función para mantener updated_at
-CREATE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Tablas
-CREATE TABLE boards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title VARCHAR(255) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE board_lists (
-    id SERIAL PRIMARY KEY,
-    board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_board_lists_board_position UNIQUE (board_id, position)
-);
-
-CREATE TABLE tasks (
-    id SERIAL PRIMARY KEY,
-    list_id INTEGER NOT NULL REFERENCES board_lists(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    position INTEGER NOT NULL DEFAULT 0 CHECK (position >= 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_tasks_list_position UNIQUE (list_id, position)
-);
-
--- Índices adicionales solo sobre FKs (los UNIQUE ya crean índice compuesto)
-CREATE INDEX idx_board_lists_board_id ON board_lists(board_id);
-CREATE INDEX idx_tasks_list_id ON tasks(list_id);
-
--- Triggers updated_at
-CREATE TRIGGER trg_boards_updated_at
-BEFORE UPDATE ON boards
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE TRIGGER trg_board_lists_updated_at
-BEFORE UPDATE ON board_lists
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE TRIGGER trg_tasks_updated_at
-BEFORE UPDATE ON tasks
+CREATE TRIGGER trg_cards_updated_at
+BEFORE UPDATE ON cards
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 COMMIT;
@@ -1129,72 +1161,108 @@ import java.util.Set;
 )
 public class BoardList {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, length = 255)
-    private String title;
+  @Column(nullable = false, length = 255)
+  private String title;
 
-    @Column(nullable = false)
-    private Integer position = 0;
+  @Column(nullable = false)
+  private Integer position = 0;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+  @CreationTimestamp
+  @Column(name = "created_at", updatable = false)
+  private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+  @UpdateTimestamp
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "board_id", nullable = false)
-    @JsonIgnore
-    private Board board;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "board_id", nullable = false)
+  @JsonIgnore
+  private Board board;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @OrderBy("position ASC")
-    private Set<Task> tasks = new LinkedHashSet<>();
+  @JsonIgnore
+  @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @OrderBy("position ASC")
+  private Set<Card> cards = new LinkedHashSet<>();
 
-    public BoardList() {}
-    public BoardList(String title, Integer position) {
-        this.title = title;
-        this.position = position;
-    }
+  public BoardList() {
+  }
 
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public Board getBoard() { return board; }
-    public void setBoard(Board board) { this.board = board; }
-    public Set<Task> getTasks() { return tasks; }
+  public BoardList(String title, Integer position) {
+    this.title = title;
+    this.position = position;
+  }
 
-    public void addTask(Task task) {
-        tasks.add(task);
-        task.setBoardList(this);
-    }
-    public void removeTask(Task task) {
-        tasks.remove(task);
-        task.setBoardList(null);
-    }
+  public Long getId() {
+    return id;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BoardList)) return false;
-        return id != null && id.equals(((BoardList) o).id);
-    }
-    @Override
-    public int hashCode() { return id != null ? id.hashCode() : 0; }
-    @Override
-    public String toString() {
-        return "BoardList{id=" + id + ", title='" + title + "', position=" + position + "}";
-    }
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public Integer getPosition() {
+    return position;
+  }
+
+  public void setPosition(Integer position) {
+    this.position = position;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public Board getBoard() {
+    return board;
+  }
+
+  public void setBoard(Board board) {
+    this.board = board;
+  }
+
+  public Set<Card> getTasks() {
+    return cards;
+  }
+
+  public void addTask(Card card) {
+    cards.add(card);
+    card.setBoardList(this);
+  }
+
+  public void removeTask(Card card) {
+    cards.remove(card);
+    card.setBoardList(null);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BoardList)) return false;
+    return id != null && id.equals(((BoardList) o).id);
+  }
+
+  @Override
+  public int hashCode() {
+    return id != null ? id.hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return "BoardList{id=" + id + ", title='" + title + "', position=" + position + "}";
+  }
 }
 ```
 
@@ -1212,7 +1280,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "tasks",
+        name = "cards",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uq_tasks_list_position", columnNames = {"list_id", "position"})
         }
@@ -1274,7 +1342,7 @@ public class Task {
     public int hashCode() { return id != null ? id.hashCode() : 0; }
     @Override
     public String toString() {
-        return "Task{id=" + id + ", title='" + title + "', position=" + position + "}";
+        return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
     }
 }
 ```
@@ -1298,7 +1366,7 @@ import java.util.UUID;
 public interface BoardRepository extends JpaRepository<Board, UUID> {
 
     // Carga eager controlada de listas y tareas (evita N+1)
-    @EntityGraph(attributePaths = {"boardLists", "boardLists.tasks"})
+    @EntityGraph(attributePaths = {"boardLists", "boardLists.cards"})
     Optional<Board> findWithBoardListsById(UUID id);
 
     boolean existsById(UUID id);
@@ -1349,9 +1417,11 @@ public interface BoardListRepository extends JpaRepository<BoardList, Long> {
 ```
 
 `TaskRepository.java`
+
 ```java
 package com.aruidev.kanbeeapi.repository;
 
+import com.aruidev.kanbeeapi.entity.Card;
 import com.aruidev.kanbeeapi.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -1360,31 +1430,31 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<Card, Long> {
 
-    // Tareas de una lista ordenadas
-    List<Task> findByBoardList_IdOrderByPositionAsc(Long listId);
+  // Tareas de una lista ordenadas
+  List<Card> findByBoardList_IdOrderByPositionAsc(Long listId);
 
-    // Última posición en la lista
-    Optional<Task> findTopByBoardList_IdOrderByPositionDesc(Long listId);
+  // Última posición en la lista
+  Optional<Card> findTopByBoardList_IdOrderByPositionDesc(Long listId);
 
-    // Desplazar posiciones al insertar
-    @Modifying
-    @Query("UPDATE Task t SET t.position = t.position + 1 " +
-           "WHERE t.boardList.id = :listId AND t.position >= :startPosition")
-    int shiftPositionsUpFrom(Long listId, int startPosition);
+  // Desplazar posiciones al insertar
+  @Modifying
+  @Query("UPDATE Card t SET t.position = t.position + 1 " +
+          "WHERE t.boardList.id = :listId AND t.position >= :startPosition")
+  int shiftPositionsUpFrom(Long listId, int startPosition);
 
-    // Reordenar rango (movimiento hacia adelante)
-    @Modifying
-    @Query("UPDATE Task t SET t.position = t.position - 1 " +
-           "WHERE t.boardList.id = :listId AND t.position > :from AND t.position <= :to")
-    int closeGapAfterMoveDown(Long listId, int from, int to);
+  // Reordenar rango (movimiento hacia adelante)
+  @Modifying
+  @Query("UPDATE Card t SET t.position = t.position - 1 " +
+          "WHERE t.boardList.id = :listId AND t.position > :from AND t.position <= :to")
+  int closeGapAfterMoveDown(Long listId, int from, int to);
 
-    // Reordenar rango (movimiento hacia atrás)
-    @Modifying
-    @Query("UPDATE Task t SET t.position = t.position + 1 " +
-           "WHERE t.boardList.id = :listId AND t.position >= :to AND t.position < :from")
-    int closeGapAfterMoveUp(Long listId, int from, int to);
+  // Reordenar rango (movimiento hacia atrás)
+  @Modifying
+  @Query("UPDATE Card t SET t.position = t.position + 1 " +
+          "WHERE t.boardList.id = :listId AND t.position >= :to AND t.position < :from")
+  int closeGapAfterMoveUp(Long listId, int from, int to);
 }
 ```
 

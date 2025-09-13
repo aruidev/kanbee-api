@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -42,9 +43,8 @@ public class BoardList {
     private Board board;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @OrderBy("position ASC")
-    private Set<Task> tasks = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Card> cards = new LinkedHashSet<>();
 
     public BoardList() {}
     public BoardList(String title, Integer position) {
@@ -61,15 +61,20 @@ public class BoardList {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public Board getBoard() { return board; }
     public void setBoard(Board board) { this.board = board; }
-    public Set<Task> getTasks() { return tasks; }
-
-    public void addTask(Task task) {
-        tasks.add(task);
-        task.setBoardList(this);
+    public List<Card> getCards() {
+        return cards;
     }
-    public void removeTask(Task task) {
-        tasks.remove(task);
-        task.setBoardList(null);
+    public void setCards(List<Card> cards) {
+        this.cards = cards;
+    }
+
+    public void addCard(Card card) {
+        cards.add(card);
+        card.setBoardList(this);
+    }
+    public void removeCard(Card card) {
+        cards.remove(card);
+        card.setBoardList(null);
     }
 
     @Override
