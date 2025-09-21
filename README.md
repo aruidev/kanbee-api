@@ -1,21 +1,21 @@
 # Kanbee – A Collaborative Kanban Board with a Bee-Inspired Design
 
-**Kanbee** es una aplicación web tipo Trello que permite gestionar cards en tableros colaborativos mediante URLs abiertas, inspirada en la organización de las abejas. Diseñada como un MVP para un portfolio junior, combina un frontend moderno, un backend robusto, y una base de datos en la nube, con una UI temática de abeja que usa colores vibrantes y patrones hexagonales.
+**Kanbee** es una aplicación web que permite gestionar tareas en tableros colaborativos mediante URLs abiertas. Diseñada como un MVP para portfolio, combina frontend moderno, backend robusto, y base de datos en la nube.
 
-**[Demo Frontend](https://kanbee-frontend.vercel.app/)** | **[API Docs (Swagger)](https://kanbee-backend.onrender.com/swagger-ui.html)** | **[Backend Repo](https://claude.ai/chat/2727206b-61a6-45bb-94ad-a20b7d89036f#)** | **[Frontend Repo](https://claude.ai/chat/2727206b-61a6-45bb-94ad-a20b7d89036f#)**
+**[Demo Frontend](https://kanbee-frontend.vercel.app/)** | **[API Docs (Swagger)](https://kanbee-api.onrender.com/swagger-ui.html)** | **[Backend Repo](https://github.com/aruidev/kanbee-api)** | **[Frontend Repo](https://github.com/aruidev/kanbee)**
 
 ---
 
 ## Funcionalidades
 
 - Crear, leer, actualizar y eliminar tableros, listas y cards.
-- URLs abiertas para acceso público (sin autenticación, intencional para simplicidad).
+- URLs abiertas para acceso sin autenticación, link único para cada tablero.
 - Drag-and-drop para mover cards entre listas, con persistencia de posición.
 - Persistencia del orden de listas con drag-and-drop.
 - Timestamps automáticos (creado/modificado) para mostrar actividad reciente.
 - Contador de cards por lista para visión rápida del progreso.
-- Spinner temático ("Las abejas están organizando tus cards...") para manejar el spin-down del backend.
-- UI inspirada en abejas: colores (#FFC107, #1A1A1A, #FFFFFF, #A8E6CF), hexágonos, íconos.
+- Spinner temático ("Abejas trabajando...") para manejar el spin-down del backend.
+- UI inspirada en abejas: colores (#FFC107, #1A1A1A, #FFFFFF, #A8E6CF), hexágonos, iconos.
 - API REST documentada con Swagger.
 
 ## Tecnologías
@@ -70,7 +70,7 @@
 
 ---
 
-### Milestone 3: Documentación y Portfolio (4-5 horas)
+### Milestone 3: Documentación (3-4 horas)
 
 |Tarea|Descripción|Horas estimadas|Entregables|
 |---|---|---|---|
@@ -78,9 +78,8 @@
 |Capturas / GIF / Video|GIF de 15-20s mostrando: crear board → agregar listas → crear cards → drag-and-drop → timestamps. Video demo de 2-3 min para LinkedIn|1.5h|Material visual profesional|
 |Métricas técnicas|Lighthouse scores del frontend, tiempo de respuesta promedio de la API, estadísticas de build|0.5h|Métricas documentadas|
 |Pruebas finales|Probar URLs abiertas en múltiples pestañas/navegadores, verificar Swagger, UI, spinner, responsive, accesibilidad básica|1h|Proyecto validado completamente|
-|Portfolio|Añadir entrada detallada: título, descripción técnica, stack, desafíos superados, GIF/video, enlaces a deploys/repos, métricas|1h|Entrada profesional destacada|
 
-**Entregables**: README completo, material visual profesional, métricas técnicas, proyecto desplegado y validado, entrada destacada en portfolio.
+**Entregables**: README completo, material visual profesional, métricas técnicas, proyecto desplegado y validado.
 
 ---
 
@@ -89,13 +88,13 @@
 - **URLs abiertas**: Cualquiera con la URL puede editar tableros, intencional para simplicidad del MVP.
 - **Spin-down de Render**: Retraso inicial (5-15s) en el plan gratuito, mitigado con spinner temático y health check.
 - **Concurrencia**: Conflictos de drag-and-drop resueltos usando timestamps de última modificación.
-- **Sin autenticación**: Diseñado como MVP, pero arquitectura preparada para JWT o Supabase Auth.
+- **Sin autenticación**: Decisión de diseño para MVP, pero arquitectura preparada para JWT o Supabase Auth.
 
 ## Mejoras futuras (roadmap extendido)
 
 - **Autenticación**: Implementar JWT/Supabase Auth con roles de usuario.
 - **Tiempo real**: WebSockets para actualizaciones simultáneas entre usuarios.
-- **Tests completos**: Coverage > 90% (JUnit backend, Jasmine/Cypress frontend).
+- **Tests completos**: Coverage > 90% (JUnit backend, Jasmine/Karma frontend).
 - **Funcionalidades avanzadas**: Etiquetas, fechas límite, comentarios, archivos adjuntos.
 - **Exportación**: PDF/JSON de tableros para backup.
 - **PWA**: Convertir en Progressive Web App para uso offline.
@@ -103,11 +102,11 @@
 
 ## Desafíos técnicos superados
 
-- **Spin-down mitigation**: Spinner temático con mensaje personalizado para mejorar UX durante cold starts.
-- **Drag-and-drop persistence**: Sistema de posiciones con resolución de conflictos usando timestamps.
 - **Arquitectura limpia**: Separación de capas con DTOs, evitando exposición directa de entidades JPA.
+- **Drag-and-drop persistence**: Sistema de posiciones con resolución de conflictos usando timestamps.
 - **Performance**: Queries optimizadas y lazy loading para tableros con muchas cards.
 - **Responsive UX**: Interfaz adaptable que funciona tanto en desktop como móvil.
+- **Spin-down mitigation**: Spinner temático con mensaje personalizado para mejorar UX durante cold starts.
 
 ## Métricas objetivo
 
@@ -121,7 +120,7 @@
 
     ```bash
     git clone <backend-repo>
-    cd kanbee-backend
+    cd kanbee-api
     # Configurar application-local.properties con credenciales de Supabase
     mvn spring-boot:run
     # Probar: http://localhost:8080/swagger-ui.html
@@ -131,7 +130,7 @@
 
     ```bash
     git clone <frontend-repo>
-    cd kanbee-frontend
+    cd kanbee
     npm install
     ng serve
     # Acceder: http://localhost:4200
