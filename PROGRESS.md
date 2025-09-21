@@ -92,11 +92,11 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [X] Incluir validaciones de negocio (board existe, lista existe, etc.)
 
 ### **Tarea 8: Crear Controladores REST**
-- [ ] `BoardController`: endpoints CRUD para tableros
-- [ ] `BoardListController`: endpoints CRUD para listas
-- [ ] `CardController`: endpoints CRUD para cards
-- [ ] Endpoints de movimiento drag-and-drop (`PATCH /cards/{id}/move`, `PATCH /lists/{id}/move`)
-- [ ] Usar `@Valid` y `@RequestBody` para validar DTOs
+- [X] `BoardController`: endpoints CRUD para tableros
+- [X] `BoardListController`: endpoints CRUD para listas
+- [X] `CardController`: endpoints CRUD para cards
+- [X] Endpoints de movimiento drag-and-drop (`PATCH /cards/{id}/move`, `PATCH /lists/{id}/move`)
+- [X] Usar `@Valid` y `@RequestBody` para validar DTOs
 
 ### **Tarea 9: Configurar CORS**
 - [ ] Permitir acceso desde:
@@ -584,15 +584,15 @@ public class Card {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof Card)) return false;
-      return id != null && id.equals(((Card) o).id);
+        if (this == o) return true;
+        if (!(o instanceof Card)) return false;
+        return id != null && id.equals(((Card) o).id);
     }
     @Override
     public int hashCode() { return id != null ? id.hashCode() : 0; }
     @Override
     public String toString() {
-      return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
+        return "Card{id=" + id + ", title='" + title + "', position=" + position + "}";
     }
   }
 ```
@@ -1513,6 +1513,48 @@ Mejoras añadidas tras implementación inicial de servicios:
 Pendiente recomendado:
 - `@ControllerAdvice` global para mapear `BadRequestException` (400) y `NotFoundException` (404) a JSON estándar.
 - Aplicar misma sanitización a `Card` (título y eventualmente descripción) si se decide reforzar.
+
+---
+
+# Modificaciones 2
+> 21-09-2025
+
+Endurecimiento de controladores REST (Tarea 8) y estandarización de API.
+
+Cambios aplicados
+- Versionado y media types
+  - Base path unificado: `/api/v1` en clase (`@RequestMapping(value = "/api/v1", produces = "application/json")`).
+  - Endpoints mutadores con `consumes = "application/json"` en `POST`/`PATCH`.
+- Location en creaciones (201 Created)
+  - `POST /boards` → `Location: /api/v1/boards/{id}`
+  - `POST /boards/{boardId}/lists` → `Location: /api/v1/lists/{id}`
+  - `POST /lists/{listId}/cards` → `Location: /api/v1/cards/{id}`
+- Expansión de recursos
+  - Patrón `?expand=...` para incluir relaciones:
+    - `GET /boards/{id}?expand=lists` o `lists,cards`.
+    - `GET /lists/{id}?expand=cards`.
+- PATCH semántico en Cards
+  - Se crea `CardUpdateDTO` (campos opcionales `title`, `description`) para `PATCH /cards/{id}`.
+  - `CardCreateDTO` queda solo para `POST`.
+- DTO genérico de título
+  - Se introduce `TitleUpdateDTO` para `PATCH` de título en Board y BoardList:
+    - `PATCH /boards/{id}` y `PATCH /lists/{id}` (método `update`).
+  - Se alinea la nomenclatura de métodos (`updateTitle` → `update`).
+- Manejo de errores uniforme
+  - `@ControllerAdvice` global (`GlobalExceptionHandler`) devuelve JSON estándar:
+    - `{ timestamp, status, error, message, path, fields? }`.
+    - Incluye `path` de la petición y `fields` para errores de validación.
+- Consistencia general
+  - Controladores reubicados bajo `/api/v1` y respuestas `application/json` por defecto.
+  - Query params unificados con `expand` para escalabilidad.
+
+Notas de compatibilidad
+- Breaking change: los paths pasan de `/api` a `/api/v1`. Actualizar clientes/front.
+- El PATCH de `Card` ahora acepta parches parciales (no requiere `title`).
+
+Siguientes pasos sugeridos
+- Tarea 9: Configurar CORS global (local y Vercel).
+- Tarea 10: Documentar con Swagger/OpenAPI (`@Operation`, `@ApiResponse`).
 
 ---
 
