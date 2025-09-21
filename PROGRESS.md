@@ -1,7 +1,7 @@
 # Kanbee Backend - Progreso del Proyecto
 
 ## 📋 Resumen del Proyecto
-**Kanbee** es una aplicación web tipo Trello que permite gestionar tareas (cards) en tableros colaborativos mediante URLs abiertas. Este README documenta todo el progreso realizado hasta ahora.
+**Kanbee** es una aplicación web tipo Trello que permite gestionar tareas (cards) en tableros colaborativos mediante URLs abiertas, sin usuarios. Este README documenta todo el progreso realizado hasta ahora.
 
 ## 🎯 Stack Tecnológico Decidido
 - **Backend**: Spring Boot + Maven + Java 21
@@ -87,9 +87,9 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [X] Añadir queries personalizadas si se necesita ordenamiento (ej. `findByBoardIdOrderByPositionAsc`)
 
 ### **Tarea 7: Crear Servicios (lógica de negocio)**
-- [ ] Implementar `BoardService`, `BoardListService`, `CardService`
-- [ ] Mapear **Entidades ↔ DTOs**
-- [ ] Incluir validaciones de negocio (board existe, lista existe, etc.)
+- [X] Implementar `BoardService`, `BoardListService`, `CardService`
+- [X] Mapear **Entidades ↔ DTOs**
+- [X] Incluir validaciones de negocio (board existe, lista existe, etc.)
 
 ### **Tarea 8: Crear Controladores REST**
 - [ ] `BoardController`: endpoints CRUD para tableros
@@ -257,7 +257,7 @@ spring.datasource.password=[REAL-PASSWORD]
   # Local environment files (IMPORTANTE)
   application-local.properties
   .env
-  
+
   # Standard Java/Maven ignores
   *.class
   target/
@@ -1463,8 +1463,8 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 ```
 
 ### Notas de uso
- 
-> - En servicios anotar métodos mutadores con @Transactional. 
+
+> - En servicios anotar métodos mutadores con @Transactional.
 > - Ajustar orden de reordenamiento: 1) desplazar rango 2) set nueva posición del elemento movido.
 > - Recomendado en application.properties: spring.jpa.open-in-view=false para controlar cargas en servicio.
 > - Validar conflictos DataIntegrityViolationException por las UNIQUE en posición.
@@ -1500,4 +1500,19 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
 ---
 
+### Actualización Hardening Tarea 7 (13-09-2025)
+
+Mejoras añadidas tras implementación inicial de servicios:
+- Sanitización y validación de títulos en `BoardService` y `BoardListService` (trim + colapso de espacios, no vacío, longitud ≤255).
+- Nueva excepción `BadRequestException` para entradas inválidas (HTTP 400).
+- DTO `BoardTitleUpdateDTO` para PATCH de título de board.
+- Creado `BoardController` (avance parcial Tarea 8) con endpoints: crear, obtener, actualizar título y eliminar.
+- Añadido/confirmado DTO `BoardListMoveDTO` usado en movimiento de listas.
+- Política uniforme: todos los títulos pasan por sanitización en la capa de servicio.
+
+Pendiente recomendado:
+- `@ControllerAdvice` global para mapear `BadRequestException` (400) y `NotFoundException` (404) a JSON estándar.
+- Aplicar misma sanitización a `Card` (título y eventualmente descripción) si se decide reforzar.
+
+---
 

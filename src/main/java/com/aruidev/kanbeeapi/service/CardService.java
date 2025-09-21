@@ -4,6 +4,7 @@ import com.aruidev.kanbeeapi.dto.*;
 import com.aruidev.kanbeeapi.entity.BoardList;
 import com.aruidev.kanbeeapi.entity.Card;
 import com.aruidev.kanbeeapi.exception.NotFoundException;
+import com.aruidev.kanbeeapi.exception.BadRequestException;
 import com.aruidev.kanbeeapi.repository.BoardListRepository;
 import com.aruidev.kanbeeapi.repository.CardRepository;
 import com.aruidev.kanbeeapi.service.mapper.EntityDtoMapper;
@@ -17,6 +18,9 @@ public class CardService {
     private final CardRepository cardRepository;
     private final BoardListRepository boardListRepository;
 
+    private static final int MAX_TITLE_LENGTH = 255;
+    private static final int MAX_DESCRIPTION_LENGTH = 2000;
+
     public CardService(CardRepository cardRepository, BoardListRepository boardListRepository) {
         this.cardRepository = cardRepository;
         this.boardListRepository = boardListRepository;
@@ -27,14 +31,38 @@ public class CardService {
         BoardList list = boardListRepository.findById(listId)
                 .orElseThrow(() -> new NotFoundException("List not found: " + listId));
 
+        String sanitizedTitle = sanitizeAndValidateTitle(dto.getTitle());
+        String sanitizedDescription = sanitizeAndValidateDescription(dto.getDescription());
+
         int position = resolveInsertionPositionForCard(listId, dto.getPosition());
-
         cardRepository.shiftPositionsUpFrom(listId, position);
-
-        Card card = new Card(dto.getTitle(), dto.getDescription(), position);
+        Card card = new Card(sanitizedTitle, sanitizedDescription, position);
         card.setBoardList(list);
         cardRepository.save(card);
         return EntityDtoMapper.toCardResponse(card);
+    }
+
+    private String sanitizeAndValidateTitle(String raw) {
+        if (raw == null) {
+            throw new BadRequestException("Title cannot be null");
+        }
+        String sanitized = raw.trim().replaceAll("\\s+", " ");
+        if (sanitized.isEmpty()) {
+            throw new BadRequestException("Title cannot be blank");
+        }
+        if (sanitized.length() > MAX_TITLE_LENGTH) {
+            throw new BadRequestException("Title length must be <= " + MAX_TITLE_LENGTH);
+        }
+        return sanitized;
+    }
+
+    private String sanitizeAndValidateDescription(String raw) {
+        if (raw == null) return null;
+        String sanitized = raw.trim();
+        if (sanitized.length() > MAX_DESCRIPTION_LENGTH) {
+            throw new BadRequestException("Description length must be <= " + MAX_DESCRIPTION_LENGTH);
+        }
+        return sanitized;
     }
 
     private int resolveInsertionPositionForCard(Long listId, Integer requested) {
@@ -55,8 +83,10 @@ public class CardService {
     public CardResponseDTO update(Long id, CardCreateDTO dto) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Card not found: " + id));
-        card.setTitle(dto.getTitle());
-        card.setDescription(dto.getDescription());
+        String sanitizedTitle = sanitizeAndValidateTitle(dto.getTitle());
+        String sanitizedDescription = sanitizeAndValidateDescription(dto.getDescription());
+        card.setTitle(sanitizedTitle);
+        card.setDescription(sanitizedDescription);
         return EntityDtoMapper.toCardResponse(card);
     }
 

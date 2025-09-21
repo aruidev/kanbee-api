@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public interface BoardRepository extends JpaRepository<Board, UUID> {
 
-    // Carga eager controlada de listas y tareas (evita N+1)
-    @EntityGraph(attributePaths = {"boardLists", "boardLists.tasks"})
+    // Controlled eager load (avoids N+1)
+    @EntityGraph(attributePaths = {"boardLists", "boardLists.cards"})
     Optional<Board> findWithBoardListsById(UUID id);
 
     boolean existsById(UUID id);

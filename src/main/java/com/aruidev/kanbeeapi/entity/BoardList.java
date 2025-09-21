@@ -6,9 +6,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(
@@ -43,8 +42,9 @@ public class BoardList {
     private Board board;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Card> cards = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "boardList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("position ASC")
+    private List<Card> cards = new ArrayList<>();
 
     public BoardList() {}
     public BoardList(String title, Integer position) {
