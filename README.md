@@ -1,4 +1,4 @@
-# Kanbee – A Collaborative Kanban Board with a Bee-Inspired Design
+# Kanbee – Collaborative Kanban Boards
 
 **Kanbee** es una aplicación web que permite gestionar tareas en tableros colaborativos mediante URLs abiertas. Diseñada como un MVP para portfolio, combina frontend moderno, backend robusto, y base de datos en la nube.
 

@@ -12,7 +12,7 @@
 	<artifactId>kanbeeapi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>kanbeeapi</name>
-	<description>API for Kanbee – A Collaborative Kanban Board</description>
+	<description>API for Kanbee – Collaborative Kanban Boards</description>
 	<url/>
 	<licenses>
 		<license/>
