@@ -120,7 +120,7 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [ ] Verificar concurrencia en drag-and-drop
 
 ### **Tarea 13: Deploy en Render**
-- [ ] Subir repo a GitHub
+- [ ] Conectar a repo de GitHub
 - [ ] Configurar variables de entorno (`SPRING_DATASOURCE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`)
 - [ ] Probar Swagger en `kanbee-backend.onrender.com`
 - [ ] Configurar health check
