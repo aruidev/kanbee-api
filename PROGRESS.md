@@ -106,8 +106,8 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [X] Métodos: GET, POST, PUT, PATCH, DELETE, OPTIONS; Headers permitidos: `*`; Headers expuestos: `Location`; `allowCredentials=false`; `maxAge=3600s`
 
 ### **Tarea 10: Documentar con Swagger**
-- [ ] Anotar controladores con `@Operation`, `@ApiResponse`
-- [ ] Probar en `/swagger-ui.html`
+- [X] Anotar controladores con `@Operation`, `@ApiResponse`
+- [X] Probar en `/swagger-ui.html` (Swagger UI) y `/v3/api-docs` (OpenAPI JSON)
 
 ### **Tarea 11: Pruebas unitarias**
 - [ ] Crear tests con JUnit para controladores y servicios
@@ -1580,3 +1580,4 @@ Archivo:
 Notas:
 - No requiere dependencias adicionales.
 - Compatible con controladores versionados bajo `/api/v1`.
+````
