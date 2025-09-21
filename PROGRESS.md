@@ -99,13 +99,15 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 - [X] Usar `@Valid` y `@RequestBody` para validar DTOs
 
 ### **Tarea 9: Configurar CORS**
-- [ ] Permitir acceso desde:
+- [X] Permitir acceso desde:
   - `http://localhost:4200` (desarrollo local)
-  - `https://kanbee-frontend.vercel.app` (deploy en Vercel)
+  - `https://kanbee.vercel.app` (deploy en Vercel)
+- [X] CORS global en `CorsConfig` para `/api/v1/**`
+- [X] Métodos: GET, POST, PUT, PATCH, DELETE, OPTIONS; Headers permitidos: `*`; Headers expuestos: `Location`; `allowCredentials=false`; `maxAge=3600s`
 
 ### **Tarea 10: Documentar con Swagger**
-- [ ] Anotar controladores con `@Operation`, `@ApiResponse`
-- [ ] Probar en `/swagger-ui.html`
+- [X] Anotar controladores con `@Operation`, `@ApiResponse`
+- [X] Probar en `/swagger-ui.html` (Swagger UI) y `/v3/api-docs` (OpenAPI JSON)
 
 ### **Tarea 11: Pruebas unitarias**
 - [ ] Crear tests con JUnit para controladores y servicios
@@ -1486,7 +1488,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 - Lógica de negocio:
   - Validación de existencia de board/list/card antes de operar.
   - Métodos de creación, obtención, actualización y borrado para cada entidad.
-  - Métodos de movimiento drag&drop para listas y cards, con reordenamiento consistente usando queries en bloque (`shiftPositionsUpFrom`, `closeGapAfterMoveDown`, `closeGapAfterMoveUp`).
+  - Métodos de movimiento drag-anddrop para listas y cards, con reordenamiento consistente usando queries en bloque (`shiftPositionsUpFrom`, `closeGapAfterMoveDown`, `closeGapAfterMoveUp`).
   - Todas las mutaciones anotadas con `@Transactional`.
   - Lectura con `@Transactional(readOnly = true)`.
 - Manejo de excepciones:
@@ -1558,3 +1560,24 @@ Siguientes pasos sugeridos
 
 ---
 
+# Modificaciones 3
+> 21-09-2025
+
+Configuración CORS global para la API.
+
+Cambios:
+- Mapeo `/api/v1/**` permitido para orígenes específicos.
+- Orígenes permitidos: `http://localhost:4200`, `https://kanbee.vercel.app`.
+- Métodos permitidos: `GET, POST, PUT, PATCH, DELETE, OPTIONS`.
+- Headers permitidos: `*`.
+- Headers expuestos: `Location` (para leer la cabecera en 201 Created).
+- `allowCredentials=false` (no usamos auth por ahora).
+- `maxAge=3600` para cachear preflight 1 hora.
+
+Archivo:
+- `src/main/java/com/aruidev/kanbeeapi/config/CorsConfig.java`.
+
+Notas:
+- No requiere dependencias adicionales.
+- Compatible con controladores versionados bajo `/api/v1`.
+````
