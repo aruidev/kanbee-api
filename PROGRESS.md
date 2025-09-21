@@ -101,7 +101,7 @@ Entidades → DTOs → Repositorios → Servicios → Controladores → Swagger 
 ### **Tarea 9: Configurar CORS**
 - [ ] Permitir acceso desde:
   - `http://localhost:4200` (desarrollo local)
-  - `https://kanbee-frontend.vercel.app` (deploy en Vercel)
+  - `https://kanbee.vercel.app` (deploy en Vercel)
 
 ### **Tarea 10: Documentar con Swagger**
 - [ ] Anotar controladores con `@Operation`, `@ApiResponse`
