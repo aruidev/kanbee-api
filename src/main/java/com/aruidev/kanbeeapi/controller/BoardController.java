@@ -2,18 +2,20 @@ package com.aruidev.kanbeeapi.controller;
 
 import com.aruidev.kanbeeapi.dto.BoardCreateDTO;
 import com.aruidev.kanbeeapi.dto.BoardResponseDTO;
-import com.aruidev.kanbeeapi.dto.BoardTitleUpdateDTO;
+import com.aruidev.kanbeeapi.dto.TitleUpdateDTO;
 import com.aruidev.kanbeeapi.service.BoardService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/boards")
+@RequestMapping(value = "/api/v1", produces = "application/json")
 @Validated
 public class BoardController {
 
@@ -23,28 +25,32 @@ public class BoardController {
         this.boardService = boardService;
     }
 
-    @PostMapping
+    @PostMapping(value = "/boards", consumes = "application/json")
     public ResponseEntity<BoardResponseDTO> create(@Valid @RequestBody BoardCreateDTO dto) {
         BoardResponseDTO created = boardService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/boards/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/boards/{id}")
     public ResponseEntity<BoardResponseDTO> get(@PathVariable UUID id,
-                                                @RequestParam(name = "children", defaultValue = "false") boolean includeChildren) {
+                                                @RequestParam(name = "expand", required = false) String expand) {
+        boolean includeChildren = expand != null && (expand.contains("lists") || expand.contains("cards"));
         return ResponseEntity.ok(boardService.get(id, includeChildren));
     }
 
-    @PatchMapping("/{id}/title")
-    public ResponseEntity<BoardResponseDTO> updateTitle(@PathVariable UUID id,
-                                                         @Valid @RequestBody BoardTitleUpdateDTO dto) {
+    @PatchMapping(value = "/boards/{id}", consumes = "application/json")
+    public ResponseEntity<BoardResponseDTO> update(@PathVariable UUID id,
+                                                   @Valid @RequestBody TitleUpdateDTO dto) {
         return ResponseEntity.ok(boardService.updateTitle(id, dto.getTitle()));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/boards/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         boardService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
-

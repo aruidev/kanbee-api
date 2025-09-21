@@ -80,13 +80,24 @@ public class CardService {
     }
 
     @Transactional
-    public CardResponseDTO update(Long id, CardCreateDTO dto) {
+    public CardResponseDTO update(Long id, CardUpdateDTO dto) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Card not found: " + id));
-        String sanitizedTitle = sanitizeAndValidateTitle(dto.getTitle());
-        String sanitizedDescription = sanitizeAndValidateDescription(dto.getDescription());
-        card.setTitle(sanitizedTitle);
-        card.setDescription(sanitizedDescription);
+
+        boolean updated = false;
+        if (dto.getTitle() != null) {
+            String sanitizedTitle = sanitizeAndValidateTitle(dto.getTitle());
+            card.setTitle(sanitizedTitle);
+            updated = true;
+        }
+        if (dto.getDescription() != null) {
+            String sanitizedDescription = sanitizeAndValidateDescription(dto.getDescription());
+            card.setDescription(sanitizedDescription);
+            updated = true;
+        }
+        if (!updated) {
+            throw new BadRequestException("No changes provided");
+        }
         return EntityDtoMapper.toCardResponse(card);
     }
 

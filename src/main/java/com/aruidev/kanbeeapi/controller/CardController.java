@@ -7,9 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping(value = "/api/v1", produces = "application/json")
 @Validated
 public class CardController {
 
@@ -19,11 +22,15 @@ public class CardController {
         this.cardService = cardService;
     }
 
-    @PostMapping("/lists/{listId}/cards")
+    @PostMapping(value = "/lists/{listId}/cards", consumes = "application/json")
     public ResponseEntity<CardResponseDTO> create(@PathVariable Long listId,
                                                   @Valid @RequestBody CardCreateDTO dto) {
         CardResponseDTO created = cardService.create(listId, dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/cards/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping("/cards/{id}")
@@ -31,13 +38,13 @@ public class CardController {
         return ResponseEntity.ok(cardService.get(id));
     }
 
-    @PatchMapping("/cards/{id}")
+    @PatchMapping(value = "/cards/{id}", consumes = "application/json")
     public ResponseEntity<CardResponseDTO> update(@PathVariable Long id,
-                                                  @Valid @RequestBody CardCreateDTO dto) {
+                                                  @Valid @RequestBody CardUpdateDTO dto) {
         return ResponseEntity.ok(cardService.update(id, dto));
     }
 
-    @PatchMapping("/cards/{id}/move")
+    @PatchMapping(value = "/cards/{id}/move", consumes = "application/json")
     public ResponseEntity<CardResponseDTO> move(@PathVariable Long id,
                                                 @Valid @RequestBody CardMoveDTO moveDto) {
         return ResponseEntity.ok(cardService.move(id, moveDto));
@@ -49,4 +56,3 @@ public class CardController {
         return ResponseEntity.noContent().build();
     }
 }
-
