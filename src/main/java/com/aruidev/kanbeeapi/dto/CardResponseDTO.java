@@ -1,47 +1,27 @@
-package com.aruidev.kanbeeapi.entity;
+package com.aruidev.kanbeeapi.dto;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "tasks")
-public class Task {
+public class CardResponseDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
     private String title;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(nullable = false)
-    private Integer position = 0;
-
-    @CreationTimestamp
-    @Column(name = "created_at")
+    private Integer position;
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Relación Many-to-One con BoardList
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "list_id", nullable = false)
-    private BoardList boardList;
+    // Constructor vacío
+    public CardResponseDTO() {}
 
-    // Constructores
-    public Task() {}
-
-    public Task(String title, String description, Integer position) {
+    public CardResponseDTO(Long id, String title, String description, Integer position,
+                           LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.position = position;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     // Getters y setters
@@ -62,7 +42,4 @@ public class Task {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    public BoardList getBoardList() { return boardList; }
-    public void setBoardList(BoardList boardList) { this.boardList = boardList; }
 }

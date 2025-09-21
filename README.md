@@ -1,6 +1,6 @@
 # Kanbee – A Collaborative Kanban Board with a Bee-Inspired Design
 
-**Kanbee** es una aplicación web tipo Trello que permite gestionar tareas en tableros colaborativos mediante URLs abiertas, inspirada en la organización de las abejas. Diseñada como un MVP para un portfolio junior, combina un frontend moderno, un backend robusto, y una base de datos en la nube, con una UI temática de abeja que usa colores vibrantes y patrones hexagonales.
+**Kanbee** es una aplicación web tipo Trello que permite gestionar cards en tableros colaborativos mediante URLs abiertas, inspirada en la organización de las abejas. Diseñada como un MVP para un portfolio junior, combina un frontend moderno, un backend robusto, y una base de datos en la nube, con una UI temática de abeja que usa colores vibrantes y patrones hexagonales.
 
 **[Demo Frontend](https://kanbee-frontend.vercel.app/)** | **[API Docs (Swagger)](https://kanbee-backend.onrender.com/swagger-ui.html)** | **[Backend Repo](https://claude.ai/chat/2727206b-61a6-45bb-94ad-a20b7d89036f#)** | **[Frontend Repo](https://claude.ai/chat/2727206b-61a6-45bb-94ad-a20b7d89036f#)**
 
@@ -8,13 +8,13 @@
 
 ## Funcionalidades
 
-- Crear, leer, actualizar y eliminar tableros, listas y tareas.
+- Crear, leer, actualizar y eliminar tableros, listas y cards.
 - URLs abiertas para acceso público (sin autenticación, intencional para simplicidad).
-- Drag-and-drop para mover tareas entre listas, con persistencia de posición.
+- Drag-and-drop para mover cards entre listas, con persistencia de posición.
 - Persistencia del orden de listas con drag-and-drop.
 - Timestamps automáticos (creado/modificado) para mostrar actividad reciente.
-- Contador de tareas por lista para visión rápida del progreso.
-- Spinner temático ("Las abejas están organizando tus tareas...") para manejar el spin-down del backend.
+- Contador de cards por lista para visión rápida del progreso.
+- Spinner temático ("Las abejas están organizando tus cards...") para manejar el spin-down del backend.
 - UI inspirada en abejas: colores (#FFC107, #1A1A1A, #FFFFFF, #A8E6CF), hexágonos, íconos.
 - API REST documentada con Swagger.
 
@@ -33,11 +33,11 @@
 |---|---|---|---|
 |Crear proyecto Spring Boot|Configurar proyecto con Maven, dependencias: Spring Web, Spring Data JPA, PostgreSQL Driver, Springdoc OpenAPI, Bean Validation|1.5-2h|Proyecto Maven listo|
 |Configurar Supabase|Crear proyecto, obtener URL JDBC, configurar `application.properties` con conexión SSL, pool de conexiones|1.5h|Conexión a Supabase establecida y optimizada|
-|Crear tablas|SQL en Supabase: `boards` (id: UUID, title, created_at, updated_at), `lists` (id: SERIAL, board_id, title, position, created_at), `tasks` (id: SERIAL, list_id, title, description, position, created_at, updated_at)|1.5h|Tablas creadas con timestamps|
-|Definir entidades JPA|Clases `Board`, `List`, `Task` con relaciones (`@OneToMany`, `mappedBy`, `orphanRemoval`), campos `position` y timestamps con `@CreationTimestamp`, `@UpdateTimestamp`|2.5h|Entidades Java con audit trail|
-|Crear DTOs|DTOs para request/response: `BoardCreateDTO`, `BoardResponseDTO`, `ListCreateDTO`, `TaskCreateDTO`, `TaskMoveDTO`|1.5h|DTOs implementados|
-|Crear repositorios|`BoardRepository`, `ListRepository`, `TaskRepository` extendiendo `JpaRepository` con queries personalizadas para ordenamiento|1.5h|Repositorios con queries optimizadas|
-|Crear controladores REST|Endpoints CRUD: `POST /boards`, `GET /boards/{id}`, `POST /boards/{id}/lists`, `POST /lists/{id}/tasks`, `PATCH /tasks/{id}/move`, `PATCH /lists/{id}/move`. Validación de existencia de board_id. Usar `@Valid` con `@NotNull`, `@Size`|3-4h|Endpoints funcionales con validaciones y manejo de concurrencia|
+|Crear tablas|SQL en Supabase: `boards` (id: UUID, title, created_at, updated_at), `lists` (id: SERIAL, board_id, title, position, created_at), `cards` (id: SERIAL, list_id, title, description, position, created_at, updated_at)|1.5h|Tablas creadas con timestamps|
+|Definir entidades JPA|Clases `Board`, `List`, `Card` con relaciones (`@OneToMany`, `mappedBy`, `orphanRemoval`), campos `position` y timestamps con `@CreationTimestamp`, `@UpdateTimestamp`|2.5h|Entidades Java con audit trail|
+|Crear DTOs|DTOs para request/response: `BoardCreateDTO`, `BoardResponseDTO`, `ListCreateDTO`, `CardCreateDTO`, `CardMoveDTO`|1.5h|DTOs implementados|
+|Crear repositorios|`BoardRepository`, `ListRepository`, `CardRepository` extendiendo `JpaRepository` con queries personalizadas para ordenamiento|1.5h|Repositorios con queries optimizadas|
+|Crear controladores REST|Endpoints CRUD: `POST /boards`, `GET /boards/{id}`, `POST /boards/{id}/lists`, `POST /lists/{id}/cards`, `PATCH /cards/{id}/move`, `PATCH /lists/{id}/move`. Validación de existencia de board_id. Usar `@Valid` con `@NotNull`, `@Size`|3-4h|Endpoints funcionales con validaciones y manejo de concurrencia|
 |Configurar CORS|Permitir acceso desde frontend Angular (`https://kanbee-frontend.vercel.app`) y localhost|0.5h|CORS funcionando|
 |Documentar con Swagger|Anotar endpoints con `@Operation`, `@ApiResponse`, ejemplos de DTOs, probar UI Swagger|1h|Swagger completo y accesible|
 |Pruebas unitarias|Tests con JUnit para controladores principales y validaciones|1h|Test coverage > 70%|
@@ -54,14 +54,14 @@
 |---|---|---|---|
 |Crear proyecto Angular|`ng new kanbee-frontend`, instalar Angular CDK y Angular Material (tema personalizado con #FFC107), configurar ESLint|1.5h|Proyecto Angular listo|
 |Configurar entornos|`environment.ts` (local: `http://localhost:8080`), `environment.prod.ts` (`https://kanbee-backend.onrender.com`), interceptor para loading|1h|Entornos configurados con interceptors|
-|Crear componentes|`BoardComponent`, `ListComponent`, `TaskComponent`, `TaskCounterComponent` con estructura responsive|2h|Componentes estructurados|
-|Crear servicios HTTP|`BoardService` con métodos CRUD: `createBoard`, `getBoard`, `createList`, `createTask`, `moveTask`, `moveList`. Tipado fuerte con interfaces|2h|Servicios tipados y optimizados|
-|Implementar drag-and-drop tareas|Angular CDK para mover tareas, enviar `PATCH /tasks/{id}/move` con `list_id` y `position`, manejar conflictos con timestamps|3-4h|Drag-and-drop de tareas funcional y robusto|
+|Crear componentes|`BoardComponent`, `ListComponent`, `CardComponent`, `CardCounterComponent` con estructura responsive|2h|Componentes estructurados|
+|Crear servicios HTTP|`BoardService` con métodos CRUD: `createBoard`, `getBoard`, `createList`, `createCard`, `moveCard`, `moveList`. Tipado fuerte con interfaces|2h|Servicios tipados y optimizados|
+|Implementar drag-and-drop cards|Angular CDK para mover cards, enviar `PATCH /cards/{id}/move` con `list_id` y `position`, manejar conflictos con timestamps|3-4h|Drag-and-drop de cards funcional y robusto|
 |Implementar drag-and-drop listas|Angular CDK para reordenar listas, persistir con `PATCH /lists/{id}/move`|1.5h|Drag-and-drop de listas funcional|
-|Contador de tareas|Componente que muestre total de tareas por lista con estado visual (vacía, pocas, muchas)|1h|Contador visual implementado|
-|Mostrar timestamps|Formatear y mostrar fecha de creación/modificación en tareas de forma amigable ("hace 2 horas")|1h|Timestamps user-friendly|
-|Implementar spinner|`mat-spinner` (color #FFC107) con mensaje "Las abejas están organizando tus tareas..." para peticiones HTTP|1h|Spinner funcional y temático|
-|UI temática abeja|Colores (#FFC107, #1A1A1A, #FFFFFF, #A8E6CF), hexágonos (CSS/SVG), bordes redondeados, hover en tareas, íconos de abeja, animaciones sutiles|2.5h|UI atractiva y profesional|
+|Contador de cards|Componente que muestre total de cards por lista con estado visual (vacía, pocas, muchas)|1h|Contador visual implementado|
+|Mostrar timestamps|Formatear y mostrar fecha de creación/modificación en cards de forma amigable ("hace 2 horas")|1h|Timestamps user-friendly|
+|Implementar spinner|`mat-spinner` (color #FFC107) con mensaje "Las abejas están organizando tus cards..." para peticiones HTTP|1h|Spinner funcional y temático|
+|UI temática abeja|Colores (#FFC107, #1A1A1A, #FFFFFF, #A8E6CF), hexágonos (CSS/SVG), bordes redondeados, hover en cards, íconos de abeja, animaciones sutiles|2.5h|UI atractiva y profesional|
 |Responsive design|Asegurar funcionamiento en móvil y tablet, collapse de listas en pantallas pequeñas|1.5h|Design responsive|
 |Pruebas de integración|Verificar comunicación con backend, persistencia de drag-and-drop, spinner en spin-down, timestamps|1.5h|Frontend funcional y probado|
 |Deploy en Vercel|Subir a GitHub, configurar build (`ng build`, output: `dist/kanbee-frontend`), probar URLs abiertas, configurar analytics básicos|1.5-2h|Frontend en `kanbee-frontend.vercel.app`|
@@ -75,7 +75,7 @@
 |Tarea|Descripción|Horas estimadas|Entregables|
 |---|---|---|---|
 |README Backend y Frontend|Descripción técnica, stack, arquitectura, funcionalidades, enlaces a deploys, limitaciones (URLs abiertas, spin-down), mejoras futuras, métricas de performance|2h|README profesional y completo|
-|Capturas / GIF / Video|GIF de 15-20s mostrando: crear board → agregar listas → crear tareas → drag-and-drop → timestamps. Video demo de 2-3 min para LinkedIn|1.5h|Material visual profesional|
+|Capturas / GIF / Video|GIF de 15-20s mostrando: crear board → agregar listas → crear cards → drag-and-drop → timestamps. Video demo de 2-3 min para LinkedIn|1.5h|Material visual profesional|
 |Métricas técnicas|Lighthouse scores del frontend, tiempo de respuesta promedio de la API, estadísticas de build|0.5h|Métricas documentadas|
 |Pruebas finales|Probar URLs abiertas en múltiples pestañas/navegadores, verificar Swagger, UI, spinner, responsive, accesibilidad básica|1h|Proyecto validado completamente|
 |Portfolio|Añadir entrada detallada: título, descripción técnica, stack, desafíos superados, GIF/video, enlaces a deploys/repos, métricas|1h|Entrada profesional destacada|
@@ -106,7 +106,7 @@
 - **Spin-down mitigation**: Spinner temático con mensaje personalizado para mejorar UX durante cold starts.
 - **Drag-and-drop persistence**: Sistema de posiciones con resolución de conflictos usando timestamps.
 - **Arquitectura limpia**: Separación de capas con DTOs, evitando exposición directa de entidades JPA.
-- **Performance**: Queries optimizadas y lazy loading para tableros con muchas tareas.
+- **Performance**: Queries optimizadas y lazy loading para tableros con muchas cards.
 - **Responsive UX**: Interfaz adaptable que funciona tanto en desktop como móvil.
 
 ## Métricas objetivo

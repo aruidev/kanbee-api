@@ -3,8 +3,11 @@ package com.aruidev.kanbeeapi.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -15,41 +18,51 @@ public class Board {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardList> boardLists;
+    @JsonIgnore
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("position ASC")
+    private Set<BoardList> boardLists = new LinkedHashSet<>();
 
-    // Constructor vacío (requerido por JPA)
     public Board() {}
+    public Board(String title) { this.title = title; }
 
-    // Constructor con título
-    public Board(String title) {
-        this.title = title;
-    }
-
-    // Getters y setters...
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Set<BoardList> getBoardLists() { return boardLists; }
 
-    public List<BoardList> getBoardLists() { return boardLists; }
-    public void setBoardLists(List<BoardList> boardLists) { this.boardLists = boardLists; }
+    public void addBoardList(BoardList list) {
+        boardLists.add(list);
+        list.setBoard(this);
+    }
+    public void removeBoardList(BoardList list) {
+        boardLists.remove(list);
+        list.setBoard(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Board)) return false;
+        return id != null && id.equals(((Board) o).id);
+    }
+    @Override
+    public int hashCode() { return id != null ? id.hashCode() : 0; }
+    @Override
+    public String toString() {
+        return "Board{id=" + id + ", title='" + title + "'}";
+    }
 }
